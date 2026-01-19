@@ -269,6 +269,36 @@
         // ⭐⭐⭐ دالة تحميل البيانات من Supabase ⭐⭐⭐
         async function loadFromSupabase() {
             try {
+                // أضف هذه الدالة بعد loadFromSupabase
+async function createTableIfNotExists() {
+    try {
+        if (!supabaseClient) return;
+        
+        // محاولة إدراج بيانات - إذا فشلت يعني الجدول غير موجود
+        const { error } = await supabaseClient
+            .from('marj_sultan_data')
+            .upsert({ 
+                id: 1, 
+                data: db,
+                updated_at: new Date().toISOString()
+            });
+            
+        if (error && error.code === '42P01') {
+            // الجدول غير موجود، سنحفظ محلياً فقط هذه المرة
+            console.log('⚠️ الجدول غير موجود في Supabase، سيتم إنشاؤه عند أول حفظ');
+        }
+    } catch (err) {
+        console.log('سيتم إنشاء الجدول تلقائياً عند الحفظ الأول');
+    }
+}
+
+// استدعها في window.onload
+window.onload = async () => {
+    await loadFromSupabase();
+    await createTableIfNotExists();
+    renderMenu();
+    setTimeout(() => document.getElementById('intro-curtain').classList.add('hide'), 1000);
+};
                 // انتظر حتى تحمل المكتبة
                 if (!window.supabase) {
                     await new Promise(resolve => setTimeout(resolve, 1000));
