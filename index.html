@@ -21,6 +21,7 @@
 
         body { background-color: var(--bg-color); color: #fff; overflow-x: hidden; padding-bottom: 50px; }
 
+        /* شريط مواعيد العمل - العودة للمكان القديم */
         .top-work-bar {
             background: rgba(212, 175, 55, 0.03);
             text-align: center;
@@ -29,6 +30,7 @@
             position: relative;
         }
 
+        /* أيقونة الفيسبوك - حجم صغير ومكان جانبي */
         .fb-mini {
             position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
             color: var(--gold); font-size: 0.85rem; opacity: 0.6; text-decoration: none;
@@ -45,6 +47,7 @@
         .header { padding: 25px 20px 15px; text-align: center; }
         .header h1 { font-size: 2.2rem; color: var(--gold); text-shadow: 0 0 15px rgba(212, 175, 55, 0.2); }
         
+        /* قسم التوصيل مع الدراجة المسرعة والخط المتلاشي */
         .delivery-wrapper {
             margin-top: 10px;
             display: inline-flex;
@@ -59,10 +62,11 @@
             position: relative; z-index: 2;
         }
 
+        /* الدراجة المسرعة */
         .bike-icon {
             font-size: 1.1rem;
             opacity: 0.5;
-            transform: skewX(-15deg);
+            transform: skewX(-15deg); /* إيحاء بالسرعة */
             animation: vibrate 0.2s infinite;
         }
 
@@ -72,6 +76,7 @@
             100% { transform: skewX(-15deg) translateY(0); }
         }
 
+        /* الخط المتلاشي أسفل الدراجة والرقم */
         .speed-line {
             width: 140%;
             height: 1px;
@@ -155,6 +160,7 @@
             text-align: center; border-top: 1px solid rgba(255,255,255,0.05);
         }
 
+        /* لوحة التحكم */
         #admin-panel {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 11000; padding: 20px; overflow-y: auto;
@@ -223,160 +229,151 @@
     </div>
 
     <script>
-        <script>
-    // ⭐⭐⭐ إرجاع الكود الأصلي بدون JSONbin - يعمل فوراً ⭐⭐⭐
-    const initialDB = {
-        settings: {
-            fb: "#",
-            phone: "0790000000"
-        },
-        categories: [
-            {
-                name: "الدجاج المشوي الفاخر",
-                items: [
-                    { name: "دجاجة كاملة", price: "45", time: "25 دقيقة", img: "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=400", desc: "دجاجة كاملة مشوية على الفحم بخلطة منبغ الخاصة، تقدم مع المثومة والمخلل." },
-                    { name: "نصف دجاجة", price: "25", time: "20 دقيقة", img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400", desc: "نصف دجاجة مشوية بعناية فائقة." },
-                    { name: "دجاجة سادة", price: "40", time: "25 دقيقة", img: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=400", desc: "دجاجة مشوية بدون أي إضافات خارجية." }
-                ]
+        const initialDB = {
+            settings: {
+                fb: "#",
+                phone: "0790000000"
             },
-            {
-                name: "الوجبات الفردية",
-                items: [
-                    { name: "وجبة عادي", price: "25", time: "10 دقائق", img: "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=400", desc: "سندويش كلاسيكي مع بطاطس." },
-                    { name: "وجبة سوبر", price: "35", time: "12 دقيقة", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400", desc: "حجم سوبر مع إضافات الصوص الخاصة." },
-                    { name: "وجبة دبل", price: "45", time: "15 دقيقة", img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=400", desc: "قطعتين من اللحم الصافي." }
-                ]
-            }
-        ]
-    };
+            categories: [
+                {
+                    name: "الدجاج المشوي الفاخر",
+                    items: [
+                        { name: "دجاجة كاملة", price: "45", time: "25 دقيقة", img: "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=400", desc: "دجاجة كاملة مشوية على الفحم بخلطة منبغ الخاصة، تقدم مع المثومة والمخلل." },
+                        { name: "نصف دجاجة", price: "25", time: "20 دقيقة", img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400", desc: "نصف دجاجة مشوية بعناية فائقة." },
+                        { name: "دجاجة سادة", price: "40", time: "25 دقيقة", img: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=400", desc: "دجاجة مشوية بدون أي إضافات خارجية." }
+                    ]
+                },
+                {
+                    name: "الوجبات الفردية",
+                    items: [
+                        { name: "وجبة عادي", price: "25", time: "10 دقائق", img: "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=400", desc: "سندويش كلاسيكي مع بطاطس." },
+                        { name: "وجبة سوبر", price: "35", time: "12 دقيقة", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400", desc: "حجم سوبر مع إضافات الصوص الخاصة." },
+                        { name: "وجبة دبل", price: "45", time: "15 دقيقة", img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=400", desc: "قطعتين من اللحم الصافي." }
+                    ]
+                }
+            ]
+        };
 
-    let db = initialDB;
-    
-    // ⭐⭐⭐ تحميل البيانات من localStorage فقط ⭐⭐⭐
-    try {
-        const saved = localStorage.getItem('marj_sultan_vFinal');
-        if(saved) db = JSON.parse(saved);
-    } catch(e) {
-        console.log('استخدام البيانات الافتراضية');
-    }
+        let db = initialDB;
+        try {
+            const saved = localStorage.getItem('marj_sultan_vFinal');
+            if(saved) db = JSON.parse(saved);
+        } catch(e) {}
 
-    // ⭐⭐⭐ كل الدوال الأصلية بدون أي تغيير ⭐⭐⭐
-    function renderMenu() {
-        document.getElementById('fb-link').href = db.settings.fb;
-        document.getElementById('display-phone').innerText = db.settings.phone;
+        function renderMenu() {
+            document.getElementById('fb-link').href = db.settings.fb;
+            document.getElementById('display-phone').innerText = db.settings.phone;
 
-        const container = document.getElementById('menu-container');
-        container.innerHTML = "";
-        db.categories.forEach((cat, cIdx) => {
-            let html = `<h2 class="cat-header">${cat.name}</h2><div class="menu-grid">`;
-            cat.items.forEach((item, iIdx) => {
-                const img = item.img || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300";
-                html += `
-                    <div class="item-card" onclick="openDetails(${cIdx}, ${iIdx})">
-                        <img src="${img}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300'">
-                        <div class="card-label">
-                            <span class="item-name">${item.name}</span>
-                            <span class="item-price">${item.price} د.أ</span>
-                            <span class="prep-time-tag">${item.time || ''}</span>
+            const container = document.getElementById('menu-container');
+            container.innerHTML = "";
+            db.categories.forEach((cat, cIdx) => {
+                let html = `<h2 class="cat-header">${cat.name}</h2><div class="menu-grid">`;
+                cat.items.forEach((item, iIdx) => {
+                    const img = item.img || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300";
+                    html += `
+                        <div class="item-card" onclick="openDetails(${cIdx}, ${iIdx})">
+                            <img src="${img}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300'">
+                            <div class="card-label">
+                                <span class="item-name">${item.name}</span>
+                                <span class="item-price">${item.price} د.أ</span>
+                                <span class="prep-time-tag">${item.time || ''}</span>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                });
+                html += `</div>`;
+                container.innerHTML += html;
             });
-            html += `</div>`;
-            container.innerHTML += html;
-        });
-    }
+        }
 
-    function copyPhone() {
-        const num = db.settings.phone;
-        const el = document.createElement('textarea');
-        el.value = num;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
-        alert("تم نسخ الرقم: " + num);
-    }
+        function copyPhone() {
+            const num = db.settings.phone;
+            const el = document.createElement('textarea');
+            el.value = num;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            alert("تم نسخ الرقم: " + num);
+        }
 
-    function openDetails(c, i) {
-        const item = db.categories[c].items[i];
-        const content = document.getElementById('modal-content');
-        content.innerHTML = `
-            ${item.img ? `<img src="${item.img}" class="modal-banner">` : ''}
-            <div class="modal-info-content">
-                <h2 class="modal-title">${item.name}</h2>
-                <span style="color:var(--gold); font-size:0.8rem;">${item.time || ''}</span>
-                <hr class="modal-divider">
-                <span class="modal-desc-label">المكونات والتفاصيل</span>
-                <p class="modal-description">${item.desc || 'نكهة مرج السلطان الأصيلة.'}</p>
-                <div style="font-size:1.6rem; font-weight:bold; color:var(--gold); margin-top:25px;">${item.price} د.أ</div>
-            </div>
-        `;
-        document.getElementById('details-overlay').style.display = 'flex';
-    }
-
-    function closeModal() { document.getElementById('details-overlay').style.display = 'none'; }
-    function checkSecret(v) { if(v.toLowerCase() === 'trad') openAdmin(); }
-    function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
-
-    function openAdmin() {
-        document.getElementById('admin-panel').style.display = 'block';
-        document.getElementById('admin-fb').value = db.settings.fb;
-        document.getElementById('admin-phone').value = db.settings.phone;
-        renderAdmin();
-    }
-
-    function renderAdmin() {
-        const list = document.getElementById('admin-list');
-        list.innerHTML = "";
-        db.categories.forEach((cat, cIdx) => {
-            let div = document.createElement('div');
-            div.className = 'admin-section';
-            div.innerHTML = `
-                <div style="display:flex; gap:10px;">
-                    <input class="admin-input" style="color:var(--gold); font-weight:bold;" value="${cat.name}" onchange="db.categories[${cIdx}].name=this.value">
-                    <button onclick="deleteCat(${cIdx})" style="color:red; background:none; border:none;"><i class="fa fa-trash"></i></button>
+        function openDetails(c, i) {
+            const item = db.categories[c].items[i];
+            const content = document.getElementById('modal-content');
+            content.innerHTML = `
+                ${item.img ? `<img src="${item.img}" class="modal-banner">` : ''}
+                <div class="modal-info-content">
+                    <h2 class="modal-title">${item.name}</h2>
+                    <span style="color:var(--gold); font-size:0.8rem;">${item.time || ''}</span>
+                    <hr class="modal-divider">
+                    <span class="modal-desc-label">المكونات والتفاصيل</span>
+                    <p class="modal-description">${item.desc || 'نكهة مرج السلطان الأصيلة.'}</p>
+                    <div style="font-size:1.6rem; font-weight:bold; color:var(--gold); margin-top:25px;">${item.price} د.أ</div>
                 </div>
-                <div id="admin-items-${cIdx}"></div>
-                <button onclick="addItem(${cIdx})" class="admin-input" style="border:1px dashed #444; color:#aaa;">+ إضافة صنف جديد</button>
             `;
-            
-            const itemsDiv = div.querySelector(`#admin-items-${cIdx}`);
-            cat.items.forEach((item, iIdx) => {
-                let row = document.createElement('div');
-                row.className = 'admin-item-row';
-                row.innerHTML = `
-                    <input class="admin-input" placeholder="الاسم" value="${item.name}" onchange="db.categories[${cIdx}].items[${iIdx}].name=this.value">
-                    <input class="admin-input" placeholder="السعر" value="${item.price}" onchange="db.categories[${cIdx}].items[${iIdx}].price=this.value">
-                    <input class="admin-input" placeholder="وقت التحضير" value="${item.time || ''}" onchange="db.categories[${cIdx}].items[${iIdx}].time=this.value">
-                    <input class="admin-input" placeholder="المكونات" value="${item.desc || ''}" onchange="db.categories[${cIdx}].items[${iIdx}].desc=this.value">
-                    <input class="admin-input" placeholder="الصورة" value="${item.img || ''}" onchange="db.categories[${cIdx}].items[${iIdx}].img=this.value">
-                    <button onclick="deleteItem(${cIdx}, ${iIdx})" style="position:absolute; top:8px; left:8px; color:#ff4444; background:none; border:none;">&times;</button>
+            document.getElementById('details-overlay').style.display = 'flex';
+        }
+
+        function closeModal() { document.getElementById('details-overlay').style.display = 'none'; }
+        function checkSecret(v) { if(v.toLowerCase() === 'trad') openAdmin(); }
+        function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
+
+        function openAdmin() {
+            document.getElementById('admin-panel').style.display = 'block';
+            document.getElementById('admin-fb').value = db.settings.fb;
+            document.getElementById('admin-phone').value = db.settings.phone;
+            renderAdmin();
+        }
+
+        function renderAdmin() {
+            const list = document.getElementById('admin-list');
+            list.innerHTML = "";
+            db.categories.forEach((cat, cIdx) => {
+                let div = document.createElement('div');
+                div.className = 'admin-section';
+                div.innerHTML = `
+                    <div style="display:flex; gap:10px;">
+                        <input class="admin-input" style="color:var(--gold); font-weight:bold;" value="${cat.name}" onchange="db.categories[${cIdx}].name=this.value">
+                        <button onclick="deleteCat(${cIdx})" style="color:red; background:none; border:none;"><i class="fa fa-trash"></i></button>
+                    </div>
+                    <div id="admin-items-${cIdx}"></div>
+                    <button onclick="addItem(${cIdx})" class="admin-input" style="border:1px dashed #444; color:#aaa;">+ إضافة صنف جديد</button>
                 `;
-                itemsDiv.appendChild(row);
+                
+                const itemsDiv = div.querySelector(`#admin-items-${cIdx}`);
+                cat.items.forEach((item, iIdx) => {
+                    let row = document.createElement('div');
+                    row.className = 'admin-item-row';
+                    row.innerHTML = `
+                        <input class="admin-input" placeholder="الاسم" value="${item.name}" onchange="db.categories[${cIdx}].items[${iIdx}].name=this.value">
+                        <input class="admin-input" placeholder="السعر" value="${item.price}" onchange="db.categories[${cIdx}].items[${iIdx}].price=this.value">
+                        <input class="admin-input" placeholder="وقت التحضير" value="${item.time || ''}" onchange="db.categories[${cIdx}].items[${iIdx}].time=this.value">
+                        <input class="admin-input" placeholder="المكونات" value="${item.desc || ''}" onchange="db.categories[${cIdx}].items[${iIdx}].desc=this.value">
+                        <input class="admin-input" placeholder="الصورة" value="${item.img || ''}" onchange="db.categories[${cIdx}].items[${iIdx}].img=this.value">
+                        <button onclick="deleteItem(${cIdx}, ${iIdx})" style="position:absolute; top:8px; left:8px; color:#ff4444; background:none; border:none;">&times;</button>
+                    `;
+                    itemsDiv.appendChild(row);
+                });
+                list.appendChild(div);
             });
-            list.appendChild(div);
-        });
-    }
+        }
 
-    function deleteCat(c) { if(confirm("حذف القسم؟")) { db.categories.splice(c,1); renderAdmin(); } }
-    function deleteItem(c, i) { db.categories[c].items.splice(i,1); renderAdmin(); }
-    function addItem(c) { db.categories[c].items.push({name: "صنف جديد", price: "0", time: "15 دقيقة", img: "", desc: ""}); renderAdmin(); }
-    function addNewCategory() { db.categories.push({name: "قسم جديد", items: []}); renderAdmin(); }
+        function deleteCat(c) { if(confirm("حذف القسم؟")) { db.categories.splice(c,1); renderAdmin(); } }
+        function deleteItem(c, i) { db.categories[c].items.splice(i,1); renderAdmin(); }
+        function addItem(c) { db.categories[c].items.push({name: "صنف جديد", price: "0", time: "15 دقيقة", img: "", desc: ""}); renderAdmin(); }
+        function addNewCategory() { db.categories.push({name: "قسم جديد", items: []}); renderAdmin(); }
 
-    function saveAllChanges() {
-        localStorage.setItem('marj_sultan_vFinal', JSON.stringify(db));
-        renderMenu();
-        closeAdmin();
-        alert("✅ تم الحفظ بنجاح!");
-    }
+        function saveAllChanges() {
+            localStorage.setItem('marj_sultan_vFinal', JSON.stringify(db));
+            renderMenu();
+            closeAdmin();
+            alert("تم الحفظ بنجاح!");
+        }
 
-    window.onload = () => {
-        console.log('🚀 بدء تحميل الموقع...');
-        renderMenu();
-        setTimeout(() => {
-            document.getElementById('intro-curtain').classList.add('hide');
-            console.log('✅ الموقع جاهز للاستخدام');
-        }, 1000);
-    };
-</script>
+        window.onload = () => {
+            renderMenu();
+            setTimeout(() => document.getElementById('intro-curtain').classList.add('hide'), 1000);
+        };
+    </script>
+</body>
+</html>
