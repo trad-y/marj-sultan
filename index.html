@@ -229,6 +229,11 @@
     </div>
 
     <script>
+        // ⭐⭐⭐ إضافة مكتبة Supabase ⭐⭐⭐
+        const supabaseScript = document.createElement('script');
+        supabaseScript.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+        document.head.appendChild(supabaseScript);
+
         const initialDB = {
             settings: {
                 fb: "#",
@@ -255,10 +260,106 @@
         };
 
         let db = initialDB;
-        try {
-            const saved = localStorage.getItem('marj_sultan_vFinal');
-            if(saved) db = JSON.parse(saved);
-        } catch(e) {}
+        
+        // ⭐⭐⭐ إعداد Supabase مع المفتاح الخاص بك ⭐⭐⭐
+        const supabaseUrl = 'https://O2iRYg1jPyETtGsCB-A8mQ.supabase.co';
+        const supabaseKey = 'sb_publishable_O2iRYg1jPyETtGsCB-A8mQ_oVanCHqt';
+        let supabaseClient = null;
+
+        // ⭐⭐⭐ دالة تحميل البيانات من Supabase ⭐⭐⭐
+        async function loadFromSupabase() {
+            try {
+                // انتظر حتى تحمل المكتبة
+                if (!window.supabase) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                
+                if (window.supabase) {
+                    supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+                    
+                    // محاولة جلب البيانات من Supabase
+                    const { data, error } = await supabaseClient
+                        .from('marj_sultan_data')
+                        .select('*')
+                        .eq('id', 1)
+                        .single();
+                    
+                    if (!error && data && data.data) {
+                        db = data.data;
+                        console.log('✅ تم تحميل البيانات من Supabase');
+                    } else {
+                        // إذا لم توجد بيانات، نستخدم المحلية
+                        const saved = localStorage.getItem('marj_sultan_vFinal');
+                        if(saved) db = JSON.parse(saved);
+                        console.log('📁 استخدام البيانات المحلية');
+                    }
+                } else {
+                    console.log('⚠️ مكتبة Supabase لم تحمل بعد، استخدام البيانات المحلية');
+                    const saved = localStorage.getItem('marj_sultan_vFinal');
+                    if(saved) db = JSON.parse(saved);
+                }
+            } catch (err) {
+                console.error('❌ خطأ في تحميل البيانات:', err);
+                const saved = localStorage.getItem('marj_sultan_vFinal');
+                if(saved) db = JSON.parse(saved);
+            }
+        }
+
+        // ⭐⭐⭐ دالة حفظ البيانات إلى Supabase ⭐⭐⭐
+        async function saveToSupabase() {
+            try {
+                if (!supabaseClient && window.supabase) {
+                    supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+                }
+                
+                if (supabaseClient) {
+                    // حفظ في Supabase
+                    const { error } = await supabaseClient
+                        .from('marj_sultan_data')
+                        .upsert({
+                            id: 1,
+                            data: db,
+                            updated_at: new Date().toISOString()
+                        }, {
+                            onConflict: 'id'
+                        });
+                    
+                    if (error) {
+                        console.error('❌ خطأ في حفظ Supabase:', error);
+                        return false;
+                    }
+                    
+                    console.log('✅ تم الحفظ في Supabase بنجاح');
+                    return true;
+                } else {
+                    console.log('⚠️ Supabase غير متاح، حفظ محلي فقط');
+                    return false;
+                }
+            } catch (err) {
+                console.error('❌ استثناء في حفظ Supabase:', err);
+                return false;
+            }
+        }
+
+        // ⭐⭐⭐ تعديل دالة حفظ التغييرات ⭐⭐⭐
+        async function saveAllChanges() {
+            // 1. الحفظ المحلي أولاً
+            localStorage.setItem('marj_sultan_vFinal', JSON.stringify(db));
+            
+            // 2. محاولة الحفظ في Supabase
+            const supabaseSaved = await saveToSupabase();
+            
+            // 3. عرض رسالة المناسبة
+            if (supabaseSaved) {
+                alert("✅ تم الحفظ بنجاح محلياً وعلى السحابة!");
+            } else {
+                alert("✅ تم الحفظ محلياً، سيتم المحاولة لاحقاً للسحابة");
+            }
+            
+            // 4. إعادة عرض القائمة وإغلاق لوحة التحكم
+            renderMenu();
+            closeAdmin();
+        }
 
         function renderMenu() {
             document.getElementById('fb-link').href = db.settings.fb;
@@ -334,46 +435,4 @@
                 div.innerHTML = `
                     <div style="display:flex; gap:10px;">
                         <input class="admin-input" style="color:var(--gold); font-weight:bold;" value="${cat.name}" onchange="db.categories[${cIdx}].name=this.value">
-                        <button onclick="deleteCat(${cIdx})" style="color:red; background:none; border:none;"><i class="fa fa-trash"></i></button>
-                    </div>
-                    <div id="admin-items-${cIdx}"></div>
-                    <button onclick="addItem(${cIdx})" class="admin-input" style="border:1px dashed #444; color:#aaa;">+ إضافة صنف جديد</button>
-                `;
-                
-                const itemsDiv = div.querySelector(`#admin-items-${cIdx}`);
-                cat.items.forEach((item, iIdx) => {
-                    let row = document.createElement('div');
-                    row.className = 'admin-item-row';
-                    row.innerHTML = `
-                        <input class="admin-input" placeholder="الاسم" value="${item.name}" onchange="db.categories[${cIdx}].items[${iIdx}].name=this.value">
-                        <input class="admin-input" placeholder="السعر" value="${item.price}" onchange="db.categories[${cIdx}].items[${iIdx}].price=this.value">
-                        <input class="admin-input" placeholder="وقت التحضير" value="${item.time || ''}" onchange="db.categories[${cIdx}].items[${iIdx}].time=this.value">
-                        <input class="admin-input" placeholder="المكونات" value="${item.desc || ''}" onchange="db.categories[${cIdx}].items[${iIdx}].desc=this.value">
-                        <input class="admin-input" placeholder="الصورة" value="${item.img || ''}" onchange="db.categories[${cIdx}].items[${iIdx}].img=this.value">
-                        <button onclick="deleteItem(${cIdx}, ${iIdx})" style="position:absolute; top:8px; left:8px; color:#ff4444; background:none; border:none;">&times;</button>
-                    `;
-                    itemsDiv.appendChild(row);
-                });
-                list.appendChild(div);
-            });
-        }
-
-        function deleteCat(c) { if(confirm("حذف القسم؟")) { db.categories.splice(c,1); renderAdmin(); } }
-        function deleteItem(c, i) { db.categories[c].items.splice(i,1); renderAdmin(); }
-        function addItem(c) { db.categories[c].items.push({name: "صنف جديد", price: "0", time: "15 دقيقة", img: "", desc: ""}); renderAdmin(); }
-        function addNewCategory() { db.categories.push({name: "قسم جديد", items: []}); renderAdmin(); }
-
-        function saveAllChanges() {
-            localStorage.setItem('marj_sultan_vFinal', JSON.stringify(db));
-            renderMenu();
-            closeAdmin();
-            alert("تم الحفظ بنجاح!");
-        }
-
-        window.onload = () => {
-            renderMenu();
-            setTimeout(() => document.getElementById('intro-curtain').classList.add('hide'), 1000);
-        };
-    </script>
-</body>
-</html>
+                        <button onclick="deleteCat(${cIdx})" style="color:red; background:none; border:none;"><i class="fa fa-trash"
