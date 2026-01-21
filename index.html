@@ -1,379 +1,567 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>مرج السلطان</title>
+    <title>شاورما مرج السلطان - نظام الطلبات الذكي</title>
+    
+    <!-- المكتبات الخارجية: FontAwesome للأيقونات و Animate.css للحركات -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
     <style>
         :root {
-            --gold: #d4af37;
-            --bg-color: #050505;
-            --card-bg: #111;
-            --glass: rgba(255, 255, 255, 0.05);
+            --gold-primary: #d4af37;
+            --gold-secondary: #f1d592;
+            --dark-bg: #050505;
+            --card-bg: #111111;
+            --text-main: #ffffff;
+            --text-dim: #a0a0a0;
+            --danger: #e74c3c;
+            --success: #2ecc71;
+            --glass: rgba(255, 255, 255, 0.03);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* تنسيقات أساسية واحترافية */
         * {
-            margin: 0; padding: 0; box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
-        body { background-color: var(--bg-color); color: #fff; overflow-x: hidden; padding-bottom: 50px; }
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
 
-        /* شريط مواعيد العمل - العودة للمكان القديم */
-        .top-work-bar {
-            background: rgba(212, 175, 55, 0.03);
+        /* خلفية متحركة خفيفة لتعطي لمسة فخامة */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #050505 100%);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* الهيدر (الترويسة) */
+        header {
+            padding: 60px 0 40px;
             text-align: center;
-            padding: 8px 0; font-size: 0.7rem; color: var(--gold);
-            border-bottom: 1px solid rgba(212, 175, 55, 0.1);
-            position: relative;
+            background: linear-gradient(to bottom, rgba(212, 175, 55, 0.05), transparent);
         }
 
-        /* أيقونة الفيسبوك - حجم صغير ومكان جانبي */
-        .fb-mini {
-            position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
-            color: var(--gold); font-size: 0.85rem; opacity: 0.6; text-decoration: none;
+        .logo-area h1 {
+            font-size: 3rem;
+            color: var(--gold-primary);
+            letter-spacing: -1px;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            margin-bottom: 10px;
         }
 
-        #intro-curtain {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 10000;
-            display: flex; justify-content: center; align-items: center;
-            transition: opacity 0.8s ease;
-        }
-        #intro-curtain.hide { opacity: 0; pointer-events: none; }
-
-        .header { padding: 25px 20px 15px; text-align: center; }
-        .header h1 { font-size: 2.2rem; color: var(--gold); text-shadow: 0 0 15px rgba(212, 175, 55, 0.2); }
-        
-        /* قسم التوصيل مع الدراجة المسرعة والخط المتلاشي */
-        .delivery-wrapper {
-            margin-top: 10px;
-            display: inline-flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-        }
-
-        .delivery-info {
-            display: flex; align-items: center; gap: 8px;
-            color: #888; font-size: 0.75rem; font-weight: 300;
-            position: relative; z-index: 2;
-        }
-
-        /* الدراجة المسرعة */
-        .bike-icon {
+        .logo-area p {
+            color: var(--text-dim);
             font-size: 1.1rem;
-            opacity: 0.5;
-            transform: skewX(-15deg); /* إيحاء بالسرعة */
-            animation: vibrate 0.2s infinite;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
-        @keyframes vibrate {
-            0% { transform: skewX(-15deg) translateY(0); }
-            50% { transform: skewX(-15deg) translateY(-1px); }
-            100% { transform: skewX(-15deg) translateY(0); }
+        /* نظام البحث والفلاتر */
+        .search-section {
+            margin: 30px 0;
+            display: flex;
+            justify-content: center;
         }
 
-        /* الخط المتلاشي أسفل الدراجة والرقم */
-        .speed-line {
-            width: 140%;
-            height: 1px;
-            background: linear-gradient(to left, var(--gold), transparent);
-            opacity: 0.3;
-            margin-top: 2px;
+        .search-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .search-wrapper input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 50px;
+            color: white;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .search-wrapper input:focus {
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+        }
+
+        .search-wrapper i {
             position: absolute;
-            bottom: -5px;
-            right: -20px;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gold-primary);
         }
 
-        .phone-number { color: var(--gold); cursor: pointer; font-weight: 400; }
-
-        .search-area { max-width: 500px; margin: 15px auto 20px; padding: 0 15px; }
-        .search-input {
-            width: 100%; padding: 12px; border-radius: 12px;
-            border: 1px solid rgba(212, 175, 55, 0.2); background: var(--glass);
-            color: white; text-align: center; outline: none; font-size: 0.9rem;
+        /* قائمة الطعام */
+        .category-title {
+            color: var(--gold-primary);
+            font-size: 1.8rem;
+            margin: 40px 0 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
-        .container { padding: 0 12px; max-width: 1200px; margin: 0 auto; }
-        
-        .cat-header { 
-            color: var(--gold); margin: 45px 0 18px; font-size: 1.2rem;
-            display: flex; align-items: center; gap: 15px;
-        }
-        .cat-header::after { 
-            content: ""; flex: 1; height: 0.5px; 
-            background: linear-gradient(to left, var(--gold), transparent); opacity: 0.4; 
+        .category-title::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to left, var(--gold-primary), transparent);
         }
 
-        .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
 
         .item-card {
-            background: var(--card-bg); border-radius: 12px; overflow: hidden;
-            aspect-ratio: 1.3 / 1; position: relative;
-            border: 1px solid rgba(255,255,255,0.02); transition: transform 0.2s;
-        }
-        .item-card:active { transform: scale(0.96); }
-
-        .card-img { width: 100%; height: 100%; object-fit: cover; }
-
-        .card-label {
-            position: absolute; bottom: 0; right: 0; width: 100%;
-            padding: 25px 8px 8px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.9) 85%);
-            text-align: right;
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: var(--transition);
+            position: relative;
         }
 
-        .item-name { 
-            font-size: 0.78rem; font-weight: 700; color: #fff; 
-            line-height: 1.1; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        .item-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--gold-primary);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
         }
-        .item-price { color: var(--gold); font-size: 0.7rem; font-weight: bold; margin-top: 2px; display: block; }
-        .prep-time-tag { font-size: 0.55rem; color: #888; display: block; font-weight: 300; margin-top: 1px; }
 
-        #details-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 9000;
-            justify-content: center; align-items: center; padding: 15px;
+        .item-img-wrapper {
+            width: 100%;
+            height: 220px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .item-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .item-card:hover .item-img {
+            transform: scale(1.1);
+        }
+
+        .item-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--gold-primary);
+            color: #000;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            z-index: 2;
+        }
+
+        .item-content {
+            padding: 20px;
+        }
+
+        .item-name {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .item-desc {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-bottom: 15px;
+            height: 45px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .price-tag {
+            color: var(--gold-primary);
+            font-weight: 800;
+            font-size: 1.2rem;
+        }
+
+        /* الأزرار */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-add { background: var(--glass); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-add:hover { background: rgba(255,255,255,0.1); }
+
+        .btn-order-now { background: var(--gold-primary); color: #000; }
+        .btn-order-now:hover { background: var(--gold-secondary); transform: scale(1.02); }
+
+        .btn-cancel { background: var(--danger); color: white; margin-top: 20px; width: 100%; }
+        .btn-cancel:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+        /* سلة التسوق العائمة */
+        .floating-cart {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background: var(--gold-primary);
+            color: #000;
+            padding: 15px 30px;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            z-index: 1000;
+            font-weight: 800;
+            transition: var(--transition);
+        }
+
+        .floating-cart:hover { transform: scale(1.05); }
+
+        .cart-count {
+            background: #000;
+            color: #fff;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        /* واجهة المودال (الطبقات الفوقية) */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
             backdrop-filter: blur(10px);
+            padding: 20px;
         }
 
-        .modal-body {
-            background: #0d0d0d; width: 100%; max-width: 400px;
-            border-radius: 20px; overflow: hidden;
-            max-height: 90vh; overflow-y: auto;
-            border: 1px solid rgba(212, 175, 55, 0.1);
+        .modal-content {
+            background: #0d0d0d;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 30px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 30px;
+            position: relative;
+            animation: zoomIn 0.3s ease;
         }
 
-        .modal-banner { width: 100%; height: 200px; object-fit: cover; }
-        .modal-info-content { padding: 25px; }
-        .modal-title { font-size: 1.5rem; color: #fff; margin-bottom: 5px; }
-        .modal-divider { height: 1px; background: rgba(212, 175, 55, 0.2); margin: 15px 0 10px; border: none; }
-        .modal-desc-label { font-size: 0.65rem; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; }
-        .modal-description { color: #aaa; font-size: 0.85rem; line-height: 1.6; margin-top: 5px; }
-
-        .btn-back {
-            background: none; color: #fff; border: none; width: 100%;
-            padding: 20px; font-weight: bold; font-size: 1rem; cursor: pointer;
-            text-align: center; border-top: 1px solid rgba(255,255,255,0.05);
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1.5rem;
         }
 
-        /* لوحة التحكم */
-        #admin-panel {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 11000; padding: 20px; overflow-y: auto;
+        /* المدخلات */
+        .form-group { margin-bottom: 20px; text-align: right; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--gold-primary); font-weight: bold; }
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1.1rem;
+            text-align: center;
         }
-        .admin-section { background: #111; padding: 15px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #222; }
-        .admin-input { width: 100%; padding: 10px; margin: 5px 0; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 8px; font-size: 0.85rem; }
-        .admin-item-row { background: #080808; padding: 12px; border-radius: 10px; margin-top: 10px; border-right: 3px solid var(--gold); position: relative; }
-        .admin-label { font-size: 0.7rem; color: #666; margin-top: 5px; display: block; }
+
+        /* السلة في المودال */
+        .cart-items-list { max-height: 300px; overflow-y: auto; margin-bottom: 20px; }
+        .cart-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #222;
+        }
+
+        /* شاشة التحضير والعد التنازلي */
+        .prep-screen { text-align: center; }
+        .prep-icon { font-size: 4rem; color: var(--gold-primary); margin-bottom: 20px; }
+        .timer-circle {
+            width: 180px;
+            height: 180px;
+            border: 5px solid var(--gold-primary);
+            border-radius: 50%;
+            margin: 30px auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+        }
+        .timer-val { font-size: 2.5rem; font-weight: 800; font-family: 'Courier New', Courier, monospace; }
+        .timer-label { font-size: 0.8rem; color: var(--gold-primary); text-transform: uppercase; }
+
+        @keyframes zoomIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* الهواتف */
+        @media (max-width: 600px) {
+            .logo-area h1 { font-size: 2.2rem; }
+            .menu-grid { grid-template-columns: 1fr; }
+            .floating-cart { bottom: 20px; left: 20px; padding: 12px 20px; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="top-work-bar">
-        <a href="#" id="fb-link" target="_blank" class="fb-mini"><i class="fab fa-facebook"></i></a>
-        <span>يفتح 10 صباحاً — يغلق 3 مساءً</span>
-    </div>
-
-    <div id="intro-curtain">
-        <h1 style="color: var(--gold); font-size: 2.5rem; letter-spacing: 5px;">مرج السلطان</h1>
-    </div>
-
-    <header class="header">
-        <h1>مرج السلطان</h1>
-        <p style="color: var(--gold); font-size: 0.6rem; letter-spacing: 4px; opacity: 0.7;">Shawarma Marj Al Sultan</p>
-        
-        <div class="delivery-wrapper">
-            <div class="delivery-info">
-                <i class="fas fa-motorcycle bike-icon"></i>
-                <span> اطلب وين ما كنت نصلك توصيل مجاني للمريخ: </span>
-                <span class="phone-number" id="display-phone" onclick="copyPhone()">07XXXXXXXX</span>
-            </div>
-            <div class="speed-line"></div>
+    <!-- الترويسة -->
+    <header class="animate__animated animate__fadeIn">
+        <div class="container logo-area">
+            <h1>مرج السلطان</h1>
+            <p>أسرع شاورما في الأردن</p>
         </div>
     </header>
 
-    <div class="search-area">
-        <input type="text" class="search-input" placeholder="ابحث عن وجبتك المفضلة" onkeyup="checkSecret(this.value)">
+    <div class="container">
+        <!-- شريط البحث -->
+        <section class="search-section animate__animated animate__fadeInUp">
+            <div class="search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="عن ماذا تبحث اليوم؟" onkeyup="filterMenu()">
+            </div>
+        </section>
+
+        <!-- الأقسام والمنتجات -->
+        <main id="menuContainer">
+            <!-- سيتم توليد المنيو بواسطة JavaScript -->
+        </main>
     </div>
 
-    <div class="container" id="menu-container"></div>
+    <!-- زر السلة العائم -->
+    <div class="floating-cart animate__animated animate__bounceIn" id="floatingCart" onclick="toggleOverlay('cartOverlay', true)">
+        <div class="cart-count" id="cartBadge">0</div>
+        <span>مشاهدة الطلب</span>
+        <i class="fas fa-shopping-bag"></i>
+    </div>
 
-    <div id="details-overlay" onclick="if(event.target.id==='details-overlay') closeModal()">
-        <div class="modal-body">
-            <div id="modal-content"></div>
-            <button class="btn-back" onclick="closeModal()">عودة</button>
+    <!-- مودال سلة المشتريات -->
+    <div class="overlay" id="cartOverlay">
+        <div class="modal-content">
+            <i class="fas fa-times close-modal" onclick="toggleOverlay('cartOverlay', false)"></i>
+            <h2 style="text-align: center; color: var(--gold-primary); margin-bottom: 25px;">🛒 سلتك الحالية</h2>
+            <div class="cart-items-list" id="cartItemsList">
+                <!-- العناصر المضافة -->
+            </div>
+            <div class="cart-summary" style="text-align: left; padding: 15px 0; font-size: 1.3rem;">
+                <span>المجموع: </span>
+                <span id="cartTotal" style="color: var(--gold-primary); font-weight: bold;">0.00</span> د.أ
+            </div>
+            <button class="btn btn-order-now" style="width: 100%; margin-top: 10px;" onclick="proceedToCheckout()">
+                متابعة الطلب <i class="fas fa-arrow-right"></i>
+            </button>
         </div>
     </div>
 
-    <div id="admin-panel">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h2 style="color:var(--gold)">إدارة مرج السلطان</h2>
-            <button onclick="closeAdmin()" style="background:#cc3333; color:white; border:none; padding:8px 15px; border-radius:8px;">خروج</button>
+    <!-- مودال بيانات العميل -->
+    <div class="overlay" id="checkoutOverlay">
+        <div class="modal-content">
+            <i class="fas fa-arrow-right close-modal" onclick="toggleOverlay('checkoutOverlay', false)"></i>
+            <h2 style="text-align: center; color: var(--gold-primary); margin-bottom: 20px;">👤 بيانات الاستلام</h2>
+            <div class="form-group">
+                <label>الاسم الكامل</label>
+                <input type="text" id="custName" placeholder="أدخل اسمك الحقيقي">
+            </div>
+            <div class="form-group">
+                <label>رقم الهاتف الأردني</label>
+                <input type="tel" id="custPhone" placeholder="07XXXXXXXX">
+            </div>
+            <button class="btn btn-order-now" style="width: 100%;" onclick="confirmFinalOrder()">
+                تأكيد الطلب الآن <i class="fas fa-check-circle"></i>
+            </button>
         </div>
-        
-        <div class="admin-section">
-            <h3 style="color:var(--gold); margin-bottom:10px; font-size:0.9rem;">إعدادات التواصل</h3>
-            <span class="admin-label">رابط الفيسبوك</span>
-            <input class="admin-input" id="admin-fb" placeholder="https://facebook.com/..." onchange="db.settings.fb=this.value">
-            <span class="admin-label">رابط الهاتف (للنسخ)</span>
-            <input class="admin-input" id="admin-phone" placeholder="0790000000" onchange="db.settings.phone=this.value">
-        </div>
+    </div>
 
-        <div id="admin-list"></div>
-        <button onclick="addNewCategory()" style="background:none; color:var(--gold); border:1px solid var(--gold); width:100%; padding:15px; border-radius:10px; margin-top:15px;">+ إضافة قائمة جديدة</button>
-        <button onclick="saveAllChanges()" style="background:var(--gold); color:black; width:100%; padding:18px; border-radius:10px; font-weight:bold; margin: 25px 0; border:none;">حفظ ونشر التعديلات</button>
+    <!-- مودال التجهيز والعد التنازلي -->
+    <div class="overlay" id="prepOverlay">
+        <div class="modal-content prep-screen">
+            <div class="prep-icon"><i class="fas fa-fire-alt"></i></div>
+            <h2 style="color: var(--gold-primary);">طلبك قيد التحضير</h2>
+            <p style="color: var(--text-dim); margin-top: 10px;">نعمل الآن على تجهيز وجبتك</p>
+            
+            <div class="timer-circle">
+                <div class="timer-val" id="timerDisplay">13:00</div>
+                <div class="timer-label">متبقي</div>
+            </div>
+
+            <div id="orderStatusMsg" style="margin-bottom: 20px; font-weight: bold;"></div>
+
+            <button class="btn btn-cancel" id="cancelBtn" onclick="cancelOrder()">
+                <i class="fas fa-times"></i> إلغاء الطلب
+            </button>
+            <p id="cancelInfo" style="font-size: 0.75rem; color: var(--text-dim); margin-top: 10px;">
+                * مسموح بالإلغاء خلال أول 7 دقائق من الطلب فقط
+            </p>
+        </div>
     </div>
 
     <script>
-        const initialDB = {
-            settings: {
-                fb: "#",
-                phone: "0790000000"
+        // --- 1. إعدادات البيانات والاتصال ---
+        const wsAddress = "192.168.1.101:8080";
+        let socket;
+
+        // الربط بالسيرفر مع معالجة الأخطاء
+        function connectToServer() {
+            try {
+                socket = new WebSocket("ws://" + wsAddress);
+                socket.onopen = () => console.log("Connected to Restaurant Server");
+                socket.onclose = () => setTimeout(connectToServer, 5000); // إعادة اتصال تلقائي
+                socket.onerror = (err) => console.log("WebSocket Connection Restricted or Offline");
+            } catch (e) {
+                console.log("WebSocket initialization failed");
+            }
+        }
+
+        const menuData = [
+            {
+                category: "الوجبات الأكثر مبيعاً",
+                items: [
+                    { id: 101, name: "وجبة دبل شاورما 🍕", price: 4.50, desc: "وجبة شاورما دبل دجاج مع بطاطس وثومية مرج السلطان الخاصة.", img: "https://images.unsplash.com/photo-1561651823-34feb02250e4?w=500", badge: "الأكثر طلباً" },
+                    { id: 102, name: "سوبر شاورما 🌯", price: 3.25, desc: "سندويش شاورما كبير مقطع مع بطاطس ومخلل مقرمش.", img: "https://images.unsplash.com/photo-1633383718081-22ac93e3dbf1?w=500", badge: "وجبة مشبعة" }
+                ]
             },
-            categories: [
-                {
-                    name: "الدجاج المشوي الفاخر",
-                    items: [
-                        { name: "دجاجة كاملة", price: "45", time: "25 دقيقة", img: "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=400", desc: "دجاجة كاملة مشوية على الفحم بخلطة منبغ الخاصة، تقدم مع المثومة والمخلل." },
-                        { name: "نصف دجاجة", price: "25", time: "20 دقيقة", img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400", desc: "نصف دجاجة مشوية بعناية فائقة." },
-                        { name: "دجاجة سادة", price: "40", time: "25 دقيقة", img: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=400", desc: "دجاجة مشوية بدون أي إضافات خارجية." }
-                    ]
-                },
-                {
-                    name: "الوجبات الفردية",
-                    items: [
-                        { name: "وجبة عادي", price: "25", time: "10 دقائق", img: "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=400", desc: "سندويش كلاسيكي مع بطاطس." },
-                        { name: "وجبة سوبر", price: "35", time: "12 دقيقة", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400", desc: "حجم سوبر مع إضافات الصوص الخاصة." },
-                        { name: "وجبة دبل", price: "45", time: "15 دقيقة", img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=400", desc: "قطعتين من اللحم الصافي." }
-                    ]
-                }
-            ]
-        };
+            {
+                category: "الوجبات الفردية",
+                items: [
+                    { id: 201, name: "سندويش عادي 🌯", price: 1.75, desc: "سندويش شاورما كلاسيكي بنكهة مرج السلطان الأصلية.", img: "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=500", badge: "سعر اقتصادي" },
+                    { id: 202, name: "سندويش صاج 🥖", price: 2.25, desc: "خبز صاج رقيق ومحمص مع قطع الدجاج الفاخرة.", img: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500", badge: "خبز صاج" }
+                ]
+            }
+        ];
 
-        let db = initialDB;
-        try {
-            const saved = localStorage.getItem('marj_sultan_vFinal');
-            if(saved) db = JSON.parse(saved);
-        } catch(e) {}
+        // --- 2. متغيرات الحالة (State) ---
+        let cart = [];
+        let orderId = Math.floor(1000 + Math.random() * 9000);
+        let timerSeconds = 13 * 60; // 13 دقيقة
+        let countdownActive = false;
+        let countdownInterval;
 
-        function renderMenu() {
-            document.getElementById('fb-link').href = db.settings.fb;
-            document.getElementById('display-phone').innerText = db.settings.phone;
-
-            const container = document.getElementById('menu-container');
+        // --- 3. وظائف المنيو والبحث ---
+        function renderMenu(filter = "") {
+            const container = document.getElementById('menuContainer');
             container.innerHTML = "";
-            db.categories.forEach((cat, cIdx) => {
-                let html = `<h2 class="cat-header">${cat.name}</h2><div class="menu-grid">`;
-                cat.items.forEach((item, iIdx) => {
-                    const img = item.img || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300";
-                    html += `
-                        <div class="item-card" onclick="openDetails(${cIdx}, ${iIdx})">
-                            <img src="${img}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300'">
-                            <div class="card-label">
-                                <span class="item-name">${item.name}</span>
-                                <span class="item-price">${item.price} د.أ</span>
-                                <span class="prep-time-tag">${item.time || ''}</span>
-                            </div>
-                        </div>
-                    `;
-                });
-                html += `</div>`;
-                container.innerHTML += html;
-            });
-        }
 
-        function copyPhone() {
-            const num = db.settings.phone;
-            const el = document.createElement('textarea');
-            el.value = num;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            alert("تم نسخ الرقم: " + num);
-        }
+            menuData.forEach(cat => {
+                const filteredItems = cat.items.filter(i => i.name.includes(filter) || i.desc.includes(filter));
+                if (filteredItems.length === 0) return;
 
-        function openDetails(c, i) {
-            const item = db.categories[c].items[i];
-            const content = document.getElementById('modal-content');
-            content.innerHTML = `
-                ${item.img ? `<img src="${item.img}" class="modal-banner">` : ''}
-                <div class="modal-info-content">
-                    <h2 class="modal-title">${item.name}</h2>
-                    <span style="color:var(--gold); font-size:0.8rem;">${item.time || ''}</span>
-                    <hr class="modal-divider">
-                    <span class="modal-desc-label">المكونات والتفاصيل</span>
-                    <p class="modal-description">${item.desc || 'نكهة مرج السلطان الأصيلة.'}</p>
-                    <div style="font-size:1.6rem; font-weight:bold; color:var(--gold); margin-top:25px;">${item.price} د.أ</div>
-                </div>
-            `;
-            document.getElementById('details-overlay').style.display = 'flex';
-        }
-
-        function closeModal() { document.getElementById('details-overlay').style.display = 'none'; }
-        function checkSecret(v) { if(v.toLowerCase() === 'trad') openAdmin(); }
-        function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
-
-        function openAdmin() {
-            document.getElementById('admin-panel').style.display = 'block';
-            document.getElementById('admin-fb').value = db.settings.fb;
-            document.getElementById('admin-phone').value = db.settings.phone;
-            renderAdmin();
-        }
-
-        function renderAdmin() {
-            const list = document.getElementById('admin-list');
-            list.innerHTML = "";
-            db.categories.forEach((cat, cIdx) => {
-                let div = document.createElement('div');
-                div.className = 'admin-section';
-                div.innerHTML = `
-                    <div style="display:flex; gap:10px;">
-                        <input class="admin-input" style="color:var(--gold); font-weight:bold;" value="${cat.name}" onchange="db.categories[${cIdx}].name=this.value">
-                        <button onclick="deleteCat(${cIdx})" style="color:red; background:none; border:none;"><i class="fa fa-trash"></i></button>
-                    </div>
-                    <div id="admin-items-${cIdx}"></div>
-                    <button onclick="addItem(${cIdx})" class="admin-input" style="border:1px dashed #444; color:#aaa;">+ إضافة صنف جديد</button>
-                `;
+                let catHtml = `<div class="category-block animate__animated animate__fadeIn">
+                                <h2 class="category-title">${cat.category}</h2>
+                                <div class="menu-grid">`;
                 
-                const itemsDiv = div.querySelector(`#admin-items-${cIdx}`);
-                cat.items.forEach((item, iIdx) => {
-                    let row = document.createElement('div');
-                    row.className = 'admin-item-row';
-                    row.innerHTML = `
-                        <input class="admin-input" placeholder="الاسم" value="${item.name}" onchange="db.categories[${cIdx}].items[${iIdx}].name=this.value">
-                        <input class="admin-input" placeholder="السعر" value="${item.price}" onchange="db.categories[${cIdx}].items[${iIdx}].price=this.value">
-                        <input class="admin-input" placeholder="وقت التحضير" value="${item.time || ''}" onchange="db.categories[${cIdx}].items[${iIdx}].time=this.value">
-                        <input class="admin-input" placeholder="المكونات" value="${item.desc || ''}" onchange="db.categories[${cIdx}].items[${iIdx}].desc=this.value">
-                        <input class="admin-input" placeholder="الصورة" value="${item.img || ''}" onchange="db.categories[${cIdx}].items[${iIdx}].img=this.value">
-                        <button onclick="deleteItem(${cIdx}, ${iIdx})" style="position:absolute; top:8px; left:8px; color:#ff4444; background:none; border:none;">&times;</button>
-                    `;
-                    itemsDiv.appendChild(row);
+                filteredItems.forEach(item => {
+                    catHtml += `
+                        <div class="item-card">
+                            <div class="item-img-wrapper">
+                                ${item.badge ? `<div class="item-badge">${item.badge}</div>` : ""}
+                                <img src="${item.img}" class="item-img" alt="${item.name}">
+                            </div>
+                            <div class="item-content">
+                                <h3 class="item-name">${item.name}</h3>
+                                <p class="item-desc">${item.desc}</p>
+                                <div class="item-footer">
+                                    <div class="price-tag">${item.price.toFixed(2)} د.أ</div>
+                                    <div style="display:flex; gap:8px;">
+                                        <button class="btn btn-add" onclick="addToCart(${item.id})"><i class="fas fa-plus"></i></button>
+                                        <button class="btn btn-order-now" onclick="quickOrder(${item.id})">اطلب</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
                 });
-                list.appendChild(div);
+                catHtml += `</div></div>`;
+                container.innerHTML += catHtml;
             });
         }
 
-        function deleteCat(c) { if(confirm("حذف القسم؟")) { db.categories.splice(c,1); renderAdmin(); } }
-        function deleteItem(c, i) { db.categories[c].items.splice(i,1); renderAdmin(); }
-        function addItem(c) { db.categories[c].items.push({name: "صنف جديد", price: "0", time: "15 دقيقة", img: "", desc: ""}); renderAdmin(); }
-        function addNewCategory() { db.categories.push({name: "قسم جديد", items: []}); renderAdmin(); }
-
-        function saveAllChanges() {
-            localStorage.setItem('marj_sultan_vFinal', JSON.stringify(db));
-            renderMenu();
-            closeAdmin();
-            alert("تم الحفظ بنجاح!");
+        function filterMenu() {
+            const query = document.getElementById('searchInput').value;
+            renderMenu(query);
         }
 
-        window.onload = () => {
-            renderMenu();
-            setTimeout(() => document.getElementById('intro-curtain').classList.add('hide'), 1000);
-        };
-    </script>
-</body>
-</html>
+        // --- 4. وظائف السلة ---
+        function addToCart(id) {
+            let foundItem;
+            menuData.forEach(cat => {
+                const item = cat.items.find(i => i.id === id);
+                if (item) foundItem = item;
+            });
+            
+            if (foundItem) {
+                cart.push(foundItem);
+                updateCartUI();
+                // تأثير بسيط لزر السلة عند الإضافة
+                const cartBtn = document.getElementById('floatingCart');
+                cartBtn.classList.remove('animate__bounceIn');
+                void cartBtn.offsetWidth; // Trigger reflow
+                cartBtn.classList.add('animate__bounceIn');
+            }
+        }
+
+        function updateCartUI() {
+            const badge = document.getElementById('cartBadge');
+            const list = document.getElementById('cartItemsList');
+            const totalDisplay = document.getElementById('cartTotal');
+            
+            badge.innerText = cart.length;
+            list.innerHTML = "";
+            let total = 0;
+
+            cart.forEach
