@@ -3,245 +3,355 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>مرج السلطان | النظام الملكي المطور</title>
+    <title>مرج السلطان | النظام المتكامل</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;500;700;900&display=swap" rel="stylesheet">
     
     <style>
         :root {
             --gold: #d4af37;
-            --gold-bright: #f1c40f;
+            --gold-light: rgba(212, 175, 55, 0.2);
             --bg: #050505;
-            --card-bg: #111111;
-            --glass: rgba(255, 255, 255, 0.03);
+            --card: #111;
+            --input-bg: #151515;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; outline: none; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; -webkit-tap-highlight-color: transparent; }
         
         body { background-color: var(--bg); color: #fff; overflow-x: hidden; line-height: 1.6; }
 
-        /* --- شريط الحالة الذكي --- */
-        #status-wrapper {
-            position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
-            z-index: 10000; width: 90%; max-width: 400px; display: none;
+        /* --- شريط الحالة العلوي --- */
+        #status-bar { 
+            position: fixed; top: 15px; left: 50%; transform: translateX(-50%); 
+            background: rgba(0,0,0,0.95); border: 2px solid var(--gold); 
+            padding: 12px 25px; border-radius: 50px; display: none; z-index: 11000;
+            box-shadow: 0 5px 25px rgba(212,175,55,0.4); backdrop-filter: blur(15px);
+            text-align: center; min-width: 280px; animation: fadeInDown 0.5s ease;
         }
-        .status-capsule {
-            background: rgba(0,0,0,0.9); border: 1px solid var(--gold);
-            padding: 12px 20px; border-radius: 50px; display: flex;
-            align-items: center; justify-content: space-between;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translate(-50%, -20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
         }
-        .pulse-gold { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); } 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); } }
 
         /* --- الهيدر والبحث --- */
-        .hero-section { padding: 40px 20px 20px; text-align: center; background: linear-gradient(to bottom, #111, var(--bg)); }
-        .hero-section h1 { font-size: 2.8rem; font-weight: 900; color: var(--gold); letter-spacing: -1px; margin-bottom: 5px; }
-        .search-box { position: relative; max-width: 500px; margin: 20px auto; padding: 0 15px; }
-        .search-box input {
-            width: 100%; padding: 15px 25px; border-radius: 15px; border: 1px solid var(--glass);
-            background: var(--card-bg); color: #fff; font-size: 1rem; text-align: center;
-            transition: var(--transition); box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        .search-box input:focus { border-color: var(--gold); background: #181818; }
-
-        /* --- عرض الأصناف (3 أعمدة) --- */
-        .container { padding: 0 15px 120px; max-width: 1200px; margin: 0 auto; }
-        .category-block { margin-bottom: 40px; }
-        .category-title {
-            color: var(--gold); font-size: 1.4rem; font-weight: 800; margin-bottom: 20px;
-            display: flex; align-items: center; gap: 15px;
-        }
-        .category-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to left, var(--gold), transparent); opacity: 0.2; }
+        .hero { padding: 40px 20px; text-align: center; background: linear-gradient(to bottom, #111, var(--bg)); }
+        .hero h1 { font-size: 2.8rem; color: var(--gold); font-weight: 900; letter-spacing: 1px; }
+        .hero p.subtitle { color: var(--gold); font-size: 0.7rem; letter-spacing: 3px; margin-top: -5px; }
         
+        .search-box { max-width: 500px; margin: 20px auto; padding: 0 20px; }
+        .search-box input { 
+            width: 100%; padding: 16px 20px; border-radius: 15px; border: 1px solid #333; 
+            background: var(--card); color: #fff; text-align: center; font-size: 1.1rem;
+            transition: var(--transition);
+        }
+        .search-box input:focus { border-color: var(--gold); background: #181818; box-shadow: 0 0 15px rgba(212,175,55,0.2); }
+
+        /* --- المنيو (3 أعمدة) --- */
+        .container { padding: 0 15px 120px; max-width: 1200px; margin: 0 auto; }
+        .category-title { 
+            color: var(--gold); font-size: 1.5rem; margin: 35px 0 15px; 
+            border-right: 5px solid var(--gold); padding-right: 15px; 
+            position: relative; display: inline-block;
+        }
         .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
         
-        .item-card {
-            background: var(--card-bg); border-radius: 18px; overflow: hidden;
-            position: relative; aspect-ratio: 1 / 1.2; border: 1px solid var(--glass);
-            cursor: pointer; transition: var(--transition);
+        .item-card { 
+            background: var(--card); border-radius: 18px; overflow: hidden; 
+            aspect-ratio: 1/1.3; border: 1px solid rgba(255,255,255,0.05); position: relative;
+            cursor: pointer; transition: var(--transition); box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
-        .item-card:active { transform: scale(0.95); }
-        .img-container { width: 100%; height: 65%; overflow: hidden; position: relative; }
-        .img-container img { width: 100%; height: 100%; object-fit: cover; transition: var(--transition); }
-        .item-info { padding: 10px; text-align: right; }
-        .item-name { font-size: 0.85rem; font-weight: 700; display: block; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .item-price { color: var(--gold); font-weight: 900; font-size: 0.9rem; }
-        .prep-time-tag { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); padding: 4px 8px; border-radius: 8px; font-size: 0.6rem; color: var(--gold); }
+        .item-card:hover { transform: translateY(-5px); border-color: rgba(212,175,55,0.3); }
+        .item-card:active { transform: scale(0.96); }
+        .item-card img { width: 100%; height: 60%; object-fit: cover; opacity: 0.9; transition: opacity 0.3s; }
+        .item-card:hover img { opacity: 1; }
+        .item-info { padding: 12px 10px; }
+        .item-name { font-size: 0.85rem; font-weight: bold; display: block; height: 38px; overflow: hidden; line-height: 1.4; }
+        .item-price { color: var(--gold); font-weight: 900; font-size: 0.95rem; display: block; margin-top: 5px; }
 
-        /* --- نافذة التفاصيل (Modal) --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 20000; display: none;
-            align-items: center; justify-content: center; backdrop-filter: blur(10px);
+        /* --- النوافذ (Overlays) --- */
+        .overlay { 
+            position: fixed; top:0; left:0; width:100%; height:100%; 
+            background:rgba(0,0,0,0.97); z-index:10000; display:none; 
+            justify-content:center; align-items:center; backdrop-filter: blur(15px);
+            animation: fadeIn 0.3s ease;
         }
-        .modal-content {
-            background: #0d0d0d; width: 92%; max-width: 450px; border-radius: 30px;
-            overflow: hidden; border: 1px solid var(--glass); position: relative;
-            max-height: 85vh; overflow-y: auto;
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-        .modal-btn-close { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.5); border: none; color: #fff; width: 35px; height: 35px; border-radius: 50%; z-index: 2; }
-
-        /* --- السلة والطلب --- */
-        .cart-capsule {
-            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
-            background: var(--gold); color: #000; padding: 18px 40px; border-radius: 50px;
-            font-weight: 900; font-size: 1.1rem; display: none; z-index: 9000;
-            box-shadow: 0 15px 40px rgba(212, 175, 55, 0.3); cursor: pointer;
+        .modal-content { 
+            background: #0d0d0d; width: 92%; max-width: 450px; border-radius: 30px; 
+            border: 1px solid #222; padding: 25px; position: relative;
+            max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            animation: slideUp 0.4s ease;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- لوحة تحكم TRAD الخارقة --- */
-        #admin-panel {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 30000; display: none; padding: 20px;
-            overflow-y: auto;
+        /* --- السلة والمدخلات --- */
+        .input-group { margin-bottom: 15px; text-align: right; }
+        .input-group label { display: block; color: var(--gold); font-size: 0.8rem; margin-bottom: 5px; margin-right: 5px; }
+        .modern-input {
+            width: 100%; padding: 16px 20px; background: var(--input-bg); border: 1px solid #252525;
+            color: #fff; border-radius: 15px; font-size: 1rem; transition: 0.3s;
         }
-        .admin-card { background: #111; border: 1px solid #222; padding: 20px; border-radius: 20px; margin-bottom: 20px; }
-        .admin-input { width: 100%; padding: 12px; margin: 8px 0; background: #050505; border: 1px solid #333; color: #fff; border-radius: 10px; }
-        .btn-action { padding: 10px 20px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
-        .btn-save { background: var(--success, #27ae60); color: #fff; }
-        .btn-delete { background: #c0392b; color: #fff; }
-        .btn-add { background: var(--gold); color: #000; margin: 10px 0; }
+        .modern-input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 10px rgba(212,175,55,0.2); }
+        
+        .delivery-box { display: none; background: #131313; padding: 15px; border-radius: 15px; margin-top: 10px; border: 1px dashed #333; }
 
-        /* --- خيارات التوصيل --- */
-        .delivery-section { display: none; margin-top: 15px; border-top: 1px solid #222; padding-top: 15px; }
+        /* --- أزرار التحكم --- */
+        .btn-submit { 
+            background: var(--gold); color: #000; font-weight: 900; padding: 18px; 
+            border-radius: 15px; border: none; width: 100%; font-size: 1.1rem; 
+            cursor: pointer; margin-top: 15px; transition: all 0.2s; letter-spacing: 0.5px;
+            position: relative; overflow: hidden;
+        }
+        .btn-submit:active { transform: scale(0.98); }
+        .btn-submit:before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+        .btn-submit:hover:before { left: 100%; }
 
-        .hidden { display: none !important; }
+        /* --- دائرة التحميل --- */
+        .loader-container { display: none; text-align: center; padding: 40px 0; }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid #222;
+            border-top: 4px solid var(--gold); border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- لوحة TRAD --- */
+        #admin-panel { 
+            position: fixed; top:0; left:0; width:100%; height:100%; 
+            background:#000; z-index:20000; display:none; padding:20px; overflow-y:auto; 
+        }
+        .admin-card { background:#111; padding:20px; border-radius:15px; margin-bottom:15px; border: 1px solid #222; }
+
+        /* --- كبسولة السلة --- */
+        .cart-capsule { 
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); 
+            background: var(--gold); color: #000; padding: 16px 35px; border-radius: 50px; 
+            font-weight: 900; display: none; z-index: 9000; box-shadow: 0 10px 30px rgba(0,0,0,0.7); 
+            cursor: pointer; transition: all 0.3s; border: 2px solid rgba(0,0,0,0.1);
+        }
+        .cart-capsule:hover { transform: translateX(-50%) scale(1.05); }
+        .cart-capsule:active { transform: translateX(-50%) scale(0.95); }
+
+        /* --- رسائل التنبيه --- */
+        .notification {
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+            background: var(--gold); color: #000; padding: 12px 25px; border-radius: 50px;
+            font-weight: bold; z-index: 10000; display: none; box-shadow: 0 5px 20px rgba(212,175,55,0.4);
+        }
+
+        /* --- وقت التجهيز المخصص --- */
+        .prep-time {
+            font-weight: bold; margin-bottom: 20px; 
+            background: var(--gold-light); padding: 6px 14px; 
+            border-radius: 20px; display: inline-block; 
+            font-size: 0.8rem; color: var(--gold); 
+            border: 1px solid rgba(212,175,55,0.3);
+        }
     </style>
 </head>
 <body>
 
-    <div id="status-wrapper">
-        <div class="status-capsule pulse-gold">
-            <span id="status-icon"><i class="fas fa-utensils"></i></span>
-            <span id="status-text">جاري إرسال طلبك...</span>
-            <span id="status-timer" style="font-weight: 900;">13:00</span>
-        </div>
+    <div id="status-bar">
+        <div id="status-text" style="color:var(--gold); font-weight:bold;">جاري الإرسال...</div>
+        <div id="status-id" style="font-size:0.7rem; opacity:0.6; margin-top:5px;"></div>
     </div>
 
-    <section class="hero-section">
+    <div id="notification" class="notification"></div>
+
+    <header class="hero">
         <h1>مرج السلطان</h1>
-        <p style="color: var(--gold); letter-spacing: 4px; font-size: 0.7rem; opacity: 0.8;">PREMIUM RESTAURANT SYSTEM</p>
+        <p class="subtitle">PREMIUM SYSTEM</p>
         <div class="search-box">
-            <input type="text" id="searchInput" placeholder="ابحث عن وجبة أو أدخل الرمز..." onkeyup="handleSearch(this.value)">
+            <input type="text" id="mainSearch" placeholder="ابحث عن وجبتك أو أدخل الرمز..." onkeyup="checkTrad(this.value)">
         </div>
-    </section>
+    </header>
 
-    <div class="container" id="mainMenu">
-        </div>
+    <main class="container" id="menuView"></main>
 
-    <div id="itemModal" class="modal-overlay" onclick="if(event.target==this) closeModal()">
-        <div class="modal-content">
-            <button class="modal-btn-close" onclick="closeModal()">✕</button>
-            <div id="modalData"></div>
-        </div>
+    <div id="itemModal" class="overlay" onclick="if(event.target==this) this.style.display='none'">
+        <div class="modal-content" id="itemDetails"></div>
     </div>
 
-    <div id="cartModal" class="modal-overlay">
-        <div class="modal-content" style="padding: 25px;">
-            <h2 style="color:var(--gold); margin-bottom:20px;">تأكيد طلبك</h2>
-            <div id="cartItemsList"></div>
-            
-            <div style="margin: 20px 0;">
-                <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-                    <input type="checkbox" id="deliveryToggle" onchange="toggleDeliveryFields()" style="width:20px; height:20px;">
-                    <span>خدمة التوصيل (Delivery)</span>
+    <div id="cartModal" class="overlay">
+        <div class="modal-content" id="cartContainer">
+            <div id="orderForm">
+                <h2 style="color:var(--gold); text-align:center; margin-bottom:20px;">تأكيد الطلب</h2>
+                <div id="cartItemsList" style="margin-bottom:20px; border-bottom:1px solid #222; max-height:120px; overflow-y:auto; padding-bottom:15px;"></div>
+                
+                <div class="input-group">
+                    <label>الاسم الكامل</label>
+                    <input type="text" id="custName" class="modern-input" placeholder="أدخل اسمك">
+                </div>
+                <div class="input-group">
+                    <label>رقم الهاتف</label>
+                    <input type="tel" id="custPhone" class="modern-input" placeholder="07XXXXXXXX">
+                </div>
+
+                <label style="display:flex; align-items:center; gap:10px; margin: 15px 0; cursor:pointer;">
+                    <input type="checkbox" id="isDelivery" onchange="toggleDelivery()" style="width:20px; height:20px; accent-color:var(--gold);">
+                    <span style="font-weight:bold;">طلب توصيل (Delivery)</span>
                 </label>
+
+                <div id="deliveryFields" class="delivery-box">
+                    <input type="text" id="area" class="modern-input" style="margin-bottom:10px;" placeholder="المنطقة">
+                    <input type="text" id="street" class="modern-input" style="margin-bottom:10px;" placeholder="الشارع">
+                    <input type="text" id="house" class="modern-input" placeholder="البناية والشقة">
+                </div>
+
+                <button class="btn-submit" id="submitBtn" onclick="processFinalOrder()">أطلب الآن</button>
+                <button onclick="closeCart()" style="width:100%; background:none; border:none; color:#555; margin-top:15px; padding:10px; cursor:pointer;">إلغاء</button>
             </div>
 
-            <div id="deliveryFields" class="delivery-section">
-                <input type="text" id="area" class="admin-input" placeholder="المنطقة / الحي">
-                <input type="text" id="street" class="admin-input" placeholder="اسم الشارع">
-                <input type="text" id="house" class="admin-input" placeholder="رقم البناية والشقة">
+            <div id="loadingOrder" class="loader-container">
+                <div class="spinner"></div>
+                <h3 style="color:var(gold); margin-bottom:10px;">جاري الإرسال...</h3>
+                <p style="font-size:0.85rem; color:#888;">يرجى الانتظار، لا تغلق الصفحة</p>
+                <div id="orderIdDisplay" style="margin-top:15px; padding:8px; background:#111; border-radius:10px; font-size:0.8rem;">
+                    رقم الطلب: <span id="currentOrderId" style="color:var(--gold); font-weight:bold;"></span>
+                </div>
             </div>
-
-            <textarea id="orderNote" class="admin-input" placeholder="ملاحظات خاصة للطلب (اختياري)"></textarea>
-            <input type="text" id="custName" class="admin-input" placeholder="الاسم الكريم">
-            <input type="text" id="custPhone" class="admin-input" placeholder="رقم الهاتف للتواصل">
-            
-            <button class="btn-action btn-add" style="width:100%; padding:18px; font-size:1.1rem;" onclick="submitOrder()">إرسال الطلب الآن</button>
-            <button class="btn-action" style="width:100%; background:none; color:#555;" onclick="closeCart()">إلغاء</button>
         </div>
     </div>
 
     <div id="admin-panel">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-            <h1 style="color:var(--gold)">لوحة إدارة المنيو</h1>
-            <button class="btn-action btn-delete" onclick="closeAdmin()">إغلاق وحفظ</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+            <h1 style="color:var(--gold)">إدارة المنيو</h1>
+            <button onclick="saveAndCloseAdmin()" style="padding:10px 20px; background:var(--gold); border:none; border-radius:10px; font-weight:bold; cursor:pointer;">حفظ وإغلاق</button>
         </div>
-        
-        <button class="btn-action btn-add" onclick="addCategory()">+ إضافة فئة جديدة (مثل: المشاوي)</button>
-        
-        <div id="adminCategories"></div>
+        <button class="btn-submit" style="background:#27ae60; color:#fff; margin-bottom:20px;" onclick="addCategory()">+ إضافة قسم جديد</button>
+        <div id="adminContainer"></div>
     </div>
 
-    <div id="cartCapsule" class="cart-capsule pulse-gold" onclick="openCart()">
-        عرض السلة (<span id="cartCount">0</span>)
+    <div id="cartCapsule" class="cart-capsule" onclick="openCart()">
+        عرض السلة (<span id="count">0</span>)
     </div>
 
     <script>
-        // --- محرك البيانات (Storage Engine) ---
-        let db = JSON.parse(localStorage.getItem('sultan_db')) || [
-            {
-                id: Date.now(),
-                category: "الوجبات الأكثر مبيعاً",
+        // --- البيانات والاتصال ---
+        let db = JSON.parse(localStorage.getItem('sultan_final_v1')) || [
+            { 
+                category: "الوجبات الأكثر طلباً", 
                 items: [
-                    { id: 101, name: "شاورما سوبر دبل", price: "4.50", desc: "خبز صاج، ثومية، مخلل، بطاطس", time: "12 د", img: "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=500" },
-                    { id: 102, name: "نصف دجاجة ع الفحم", price: "3.50", desc: "تقدم مع الأرز والمقبلات", time: "20 د", img: "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=500" }
-                ]
+                    { id: 1, name: "شاورما ملكي دبل", price: "4.50", img: "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=500", desc: "لحم طازج، ثومية، بطاطس، خضار", time: "12 د" },
+                    { id: 2, name: "برغر ملكي", price: "5.00", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500", desc: "لحم بقري، جبنة، خس، طماطم", time: "15 د" },
+                    { id: 3, name: "دجاج مشوي", price: "3.75", img: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=500", desc: "دجاج مشوي مع أرز وخضار", time: "18 د" }
+                ] 
+            },
+            { 
+                category: "المشروبات", 
+                items: [
+                    { id: 4, name: "عصير برتقال طازج", price: "1.50", img: "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=500", desc: "عصير برتقال طبيعي 100%", time: "5 د" },
+                    { id: 5, name: "كولا", price: "1.00", img: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500", desc: "مشروب غازي", time: "2 د" }
+                ] 
             }
         ];
-
+        
         let cart = [];
         let socket;
-        let orderID = "MS-" + Math.floor(1000 + Math.random() * 9000);
 
-        // --- نظام الاتصال (Socket Logic) ---
-        function initSocket() {
-            socket = new WebSocket("ws://192.168.1.101:8080");
-            socket.onmessage = (e) => {
-                const msg = e.data;
-                const statusWrap = document.getElementById('status-wrapper');
-                const statusText = document.getElementById('status-text');
+        function connect() {
+            try {
+                socket = new WebSocket("ws://192.168.1.101:8080");
                 
-                statusWrap.style.display = 'block';
-                if(msg.includes("قيد التحضير")) {
-                    statusText.innerText = "👨‍🍳 طلبك قيد التحضير الآن";
-                    statusWrap.querySelector('.status-capsule').style.borderColor = "#e67e22";
-                } else if(msg.includes("جاهز")) {
-                    statusText.innerText = "✅ طلبك جاهز! صحة وعافية";
-                    statusWrap.querySelector('.status-capsule').style.borderColor = "#27ae60";
-                    alert("وجبتك جاهزة للاستلام!");
-                } else if(msg.includes("مرفوض")) {
-                    statusText.innerText = "❌ نعتذر، تعذر قبول الطلب";
-                    statusWrap.querySelector('.status-capsule').style.borderColor = "#c0392b";
-                }
-            };
+                socket.onopen = function() {
+                    console.log("✅ تم الاتصال بالسيرفر");
+                };
+                
+                socket.onmessage = (e) => {
+                    try {
+                        const msg = JSON.parse(e.data);
+                        const bar = document.getElementById('status-bar');
+                        const txt = document.getElementById('status-text');
+                        const statusId = document.getElementById('status-id');
+                        
+                        bar.style.display = 'block';
+                        bar.style.animation = 'fadeInDown 0.5s ease';
+                        
+                        if(msg.status === "preparing") {
+                            txt.innerText = "👨‍🍳 طلبك قيد التحضير الآن";
+                            if(msg.estimatedTime) {
+                                statusId.innerText = "⏱ " + msg.estimatedTime + " | #" + (msg.orderId || "");
+                            } else {
+                                statusId.innerText = "#" + (msg.orderId || "");
+                            }
+                        }
+                        else if(msg.status === "ready") { 
+                            txt.innerText = "✅ طلبك جاهز للاستلام!";
+                            statusId.innerText = "#" + (msg.orderId || "");
+                            showNotification("طلبك أصبح جاهزاً للاستلام!");
+                        }
+                        else if(msg.status === "rejected") { 
+                            txt.innerText = "❌ نعتذر، تعذر قبول الطلب";
+                            statusId.innerText = "#" + (msg.orderId || "");
+                            showNotification("نعتذر، تعذر قبول طلبك حالياً");
+                        }
+                        else if(msg.status === "received") {
+                            txt.innerText = "📥 تم استلام طلبك";
+                            statusId.innerText = "#" + (msg.orderId || "");
+                        }
+                        
+                        setTimeout(() => {
+                            bar.style.animation = 'fadeInDown 0.5s ease reverse';
+                            setTimeout(() => { bar.style.display = 'none'; }, 500);
+                        }, 5000);
+                        
+                    } catch(err) {
+                        console.log("رسالة نصية من السيرفر:", e.data);
+                    }
+                };
+                
+                socket.onerror = function(error) {
+                    console.log("❌ خطأ في الاتصال بالسيرفر");
+                };
+                
+                socket.onclose = function() {
+                    console.log("🔌 تم قطع الاتصال بالسيرفر");
+                };
+                
+            } catch(err) {
+                console.log("❌ فشل إنشاء اتصال WebSocket");
+            }
         }
 
-        // --- محرك العرض (Rendering Engine) ---
+        function showNotification(text) {
+            const notif = document.getElementById('notification');
+            notif.innerText = text;
+            notif.style.display = 'block';
+            setTimeout(() => {
+                notif.style.display = 'none';
+            }, 3000);
+        }
+
+        // --- محرك العرض الرئيسي ---
         function renderMenu(filter = "") {
-            const container = document.getElementById('mainMenu');
-            container.innerHTML = "";
+            const view = document.getElementById('menuView');
+            view.innerHTML = "";
             
             db.forEach(cat => {
-                const filteredItems = cat.items.filter(i => i.name.includes(filter));
-                if (filteredItems.length === 0) return;
-
-                let html = `
-                    <div class="category-block">
-                        <h2 class="category-title">${cat.category}</h2>
-                        <div class="menu-grid">
-                `;
-
-                filteredItems.forEach(item => {
+                const items = cat.items.filter(i => 
+                    i.name.includes(filter) || 
+                    (i.desc && i.desc.includes(filter))
+                );
+                
+                if(items.length === 0) return;
+                
+                let html = `<h2 class="category-title">${cat.category}</h2><div class="menu-grid">`;
+                
+                items.forEach(item => {
                     html += `
-                        <div class="item-card" onclick="openItem(${item.id})">
-                            <div class="prep-time-tag"><i class="far fa-clock"></i> ${item.time}</div>
-                            <div class="img-container">
-                                <img src="${item.img || 'https://via.placeholder.com/150'}" alt="${item.name}">
-                            </div>
+                        <div class="item-card" onclick="openItemDetails(${item.id})">
+                            <img src="${item.img || 'https://via.placeholder.com/150'}" alt="${item.name}">
                             <div class="item-info">
                                 <span class="item-name">${item.name}</span>
                                 <span class="item-price">${item.price} د.أ</span>
@@ -249,30 +359,41 @@
                         </div>
                     `;
                 });
-
-                html += `</div></div>`;
-                container.innerHTML += html;
+                
+                view.innerHTML += html + `</div>`;
             });
+            
+            if(view.innerHTML === "") {
+                view.innerHTML = `
+                    <div style="text-align:center; padding:50px 20px;">
+                        <i class="fas fa-search" style="font-size:3rem; color:#333; margin-bottom:20px;"></i>
+                        <h3 style="color:#666;">لا توجد نتائج</h3>
+                        <p style="color:#444;">جرب استخدام كلمات بحث أخرى</p>
+                    </div>
+                `;
+            }
         }
 
-        // --- نظام التحكم بالأصناف ---
-        function openItem(id) {
+        function openItemDetails(id) {
             let item;
-            db.forEach(c => c.items.forEach(i => { if(i.id === id) item = i; }));
+            db.forEach(c => c.items.forEach(i => { if(i.id == id) item = i; }));
             
-            document.getElementById('modalData').innerHTML = `
-                <img src="${item.img}" style="width:100%; height:250px; object-fit:cover;">
-                <div style="padding:25px;">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <h2 style="font-size:1.5rem; color:var(--gold);">${item.name}</h2>
-                        <span style="font-weight:900; font-size:1.2rem;">${item.price} د.أ</span>
-                    </div>
-                    <p style="color:#888; margin:15px 0; font-size:0.9rem;">${item.desc}</p>
-                    <div style="background:#1a1a1a; padding:15px; border-radius:15px; margin-bottom:20px;">
-                        <small style="color:var(--gold); display:block; margin-bottom:5px;">وقت التجهيز المتوقع</small>
-                        <i class="far fa-clock"></i> ${item.time}
-                    </div>
-                    <button class="btn-action btn-add" style="width:100%; padding:15px;" onclick="addToCart(${item.id})">إضافة للسلة</button>
+            if(!item) return;
+            
+            document.getElementById('itemDetails').innerHTML = `
+                <img src="${item.img || 'https://via.placeholder.com/150'}" 
+                     style="width:100%; border-radius:20px; margin-bottom:20px; height:200px; object-fit:cover;"
+                     alt="${item.name}">
+                <h2 style="color:var(--gold); margin-bottom:10px;">${item.name}</h2>
+                <p style="color:#888; margin-bottom:15px; font-size:0.9rem; line-height:1.5;">${item.desc || "لا يوجد وصف"}</p>
+                <div class="prep-time">
+                    ⏱ وقت التجهيز: ${item.time || "10 د"}
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <span style="font-size:1.5rem; font-weight:900; color:var(--gold);">${item.price} د.أ</span>
+                    <button class="btn-submit" onclick="addToCart(${item.id})" style="width:auto; padding:12px 30px;">
+                        <i class="fas fa-plus" style="margin-left:5px;"></i> إضافة للسلة
+                    </button>
                 </div>
             `;
             document.getElementById('itemModal').style.display = 'flex';
@@ -280,102 +401,244 @@
 
         function addToCart(id) {
             let item;
-            db.forEach(c => c.items.forEach(i => { if(i.id === id) item = i; }));
+            db.forEach(c => c.items.forEach(i => { if(i.id == id) item = i; }));
+            
+            if(!item) return;
+            
             cart.push(item);
-            updateCartUI();
-            closeModal();
+            document.getElementById('count').innerText = cart.length;
+            document.getElementById('cartCapsule').style.display = 'block';
+            document.getElementById('itemModal').style.display = 'none';
+            
+            showNotification("تمت الإضافة إلى السلة ✓");
         }
 
-        function updateCartUI() {
-            document.getElementById('cartCount').innerText = cart.length;
-            document.getElementById('cartCapsule').style.display = cart.length > 0 ? 'block' : 'none';
+        function toggleDelivery() {
+            const deliveryFields = document.getElementById('deliveryFields');
+            const isChecked = document.getElementById('isDelivery').checked;
+            deliveryFields.style.display = isChecked ? 'block' : 'none';
         }
 
-        // --- نظام التوصيل والطلب ---
-        function toggleDeliveryFields() {
-            const isDelivery = document.getElementById('deliveryToggle').checked;
-            document.getElementById('deliveryFields').style.display = isDelivery ? 'block' : 'none';
+        function openCart() {
+            if(cart.length === 0) {
+                showNotification("السلة فارغة");
+                return;
+            }
+            
+            const list = document.getElementById('cartItemsList');
+            const counts = {};
+            
+            cart.forEach(i => counts[i.name] = (counts[i.name] || 0) + 1);
+            
+            list.innerHTML = Object.keys(counts).map(name => `
+                <div style="display:flex; justify-content:space-between; padding:8px 0; font-size:0.9rem; align-items:center;">
+                    <span>${name}</span> 
+                    <span style="color:var(--gold); font-weight:bold;">x${counts[name]}</span>
+                </div>
+            `).join('');
+            
+            document.getElementById('cartModal').style.display = 'flex';
         }
 
-        function submitOrder() {
-            const name = document.getElementById('custName').value;
-            const phone = document.getElementById('custPhone').value;
-            if(!name || !phone) return alert("يرجى إدخال الاسم ورقم الهاتف");
-
-            const isDel = document.getElementById('deliveryToggle').checked;
+        // --- معالجة الطلب (الزر الذكي) ---
+        function processFinalOrder() {
+            const name = document.getElementById('custName').value.trim();
+            const phone = document.getElementById('custPhone').value.trim();
+            
+            if(!name || !phone) {
+                showNotification("يرجى إدخال الاسم والهاتف");
+                return;
+            }
+            
+            if(!phone.match(/^07[0-9]{8}$/)) {
+                showNotification("رقم الهاتف غير صحيح (يجب أن يكون 10 أرقام ويبدأ بـ 07)");
+                return;
+            }
+            
+            const isDelivery = document.getElementById('isDelivery').checked;
+            let address = "استلام فرع";
+            
+            if(isDelivery) {
+                const area = document.getElementById('area').value.trim();
+                const street = document.getElementById('street').value.trim();
+                const house = document.getElementById('house').value.trim();
+                
+                if(!area || !street) {
+                    showNotification("يرجى إدخال معلومات العنوان للتوصيل");
+                    return;
+                }
+                
+                address = `${area} - ${street} ${house ? ' - ' + house : ''}`;
+            }
+            
+            const orderId = "MS-" + Date.now().toString().slice(-6);
+            
+            document.getElementById('currentOrderId').innerText = orderId;
+            document.getElementById('orderForm').style.display = 'none';
+            document.getElementById('loadingOrder').style.display = 'block';
+            
             const orderData = {
-                orderID,
+                orderID: orderId,
                 customer: name,
                 phone: phone,
                 items: cart,
-                isDelivery: isDel,
-                address: isDel ? `${document.getElementById('area').value}, ${document.getElementById('street').value}` : "استلام من الفرع",
-                note: document.getElementById('orderNote').value
+                address: address,
+                timestamp: new Date().toISOString(),
+                isDelivery: isDelivery,
+                total: calculateTotal()
             };
-
-            if(socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify(orderData));
-                document.getElementById('status-wrapper').style.display = 'block';
-                document.getElementById('status-timer').innerText = orderID;
-                closeCart();
+            
+            setTimeout(() => {
+                if(socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify(orderData));
+                    document.getElementById('status-bar').style.display = 'block';
+                    document.getElementById('status-text').innerText = "جاري الإرسال...";
+                    document.getElementById('status-id').innerText = "#" + orderId;
+                } else {
+                    console.log("الاتصال غير متوفر، تخزين الطلب محلياً");
+                    saveOrderLocally(orderData);
+                }
+                
+                document.getElementById('cartModal').style.display = 'none';
                 cart = [];
-                updateCartUI();
-                alert("تم إرسال طلبك بنجاح! تتبع الحالة من الأعلى.");
+                document.getElementById('cartCapsule').style.display = 'none';
+                document.getElementById('count').innerText = "0";
+                resetOrderForm();
+                
+                showNotification("تم إرسال طلبك بنجاح ✓");
+                
+            }, 1500);
+        }
+
+        function calculateTotal() {
+            return cart.reduce((sum, item) => {
+                const price = parseFloat(item.price) || 0;
+                return sum + price;
+            }, 0).toFixed(2);
+        }
+
+        function saveOrderLocally(orderData) {
+            const orders = JSON.parse(localStorage.getItem('sultan_orders')) || [];
+            orders.push(orderData);
+            localStorage.setItem('sultan_orders', JSON.stringify(orders));
+        }
+
+        function resetOrderForm() {
+            document.getElementById('orderForm').style.display = 'block';
+            document.getElementById('loadingOrder').style.display = 'none';
+            document.getElementById('custName').value = "";
+            document.getElementById('custPhone').value = "";
+            document.getElementById('area').value = "";
+            document.getElementById('street').value = "";
+            document.getElementById('house').value = "";
+            document.getElementById('isDelivery').checked = false;
+            document.getElementById('deliveryFields').style.display = 'none';
+        }
+
+        // --- إدارة TRAD ---
+        function checkTrad(val) {
+            if(val.toLowerCase() === 'trad') {
+                document.getElementById('admin-panel').style.display = 'block';
+                renderAdmin();
             } else {
-                alert("عذراً، انقطع الاتصال بالسيرفر.");
+                renderMenu(val);
             }
         }
 
-        // --- لوحة التحكم الخارقة (TRAD) ---
-        function handleSearch(val) {
-            if(val.toLowerCase() === 'trad') openAdmin();
-            else renderMenu(val);
-        }
-
-        function openAdmin() {
-            document.getElementById('admin-panel').style.display = 'block';
-            renderAdminContent();
-        }
-
-        function renderAdminContent() {
-            const container = document.getElementById('adminCategories');
-            container.innerHTML = "";
-            db.forEach((cat, cIdx) => {
-                let html = `
-                    <div class="admin-card">
-                        <input type="text" class="admin-input" value="${cat.category}" onchange="updateCatName(${cIdx}, this.value)" style="font-weight:bold; color:var(--gold);">
-                        <button class="btn-action btn-delete" onclick="removeCategory(${cIdx})">حذف الفئة بالكامل</button>
-                        <hr style="margin:15px 0; opacity:0.1;">
-                `;
-
-                cat.items.forEach((item, iIdx) => {
-                    html += `
-                        <div style="background:#050505; padding:15px; border-radius:10px; margin-bottom:10px; border:1px solid #222;">
-                            <input type="text" class="admin-input" value="${item.name}" onchange="updateItem(${cIdx}, ${iIdx}, 'name', this.value)" placeholder="اسم الصنف">
-                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                                <input type="text" class="admin-input" value="${item.price}" onchange="updateItem(${cIdx}, ${iIdx}, 'price', this.value)" placeholder="السعر">
-                                <input type="text" class="admin-input" value="${item.time}" onchange="updateItem(${cIdx}, ${iIdx}, 'time', this.value)" placeholder="وقت التجهيز">
-                            </div>
-                            <input type="text" class="admin-input" value="${item.img}" onchange="updateItem(${cIdx}, ${iIdx}, 'img', this.value)" placeholder="رابط الصورة">
-                            <textarea class="admin-input" onchange="updateItem(${cIdx}, ${iIdx}, 'desc', this.value)" placeholder="وصف الصنف">${item.desc}</textarea>
-                            <button class="btn-action btn-delete" style="font-size:0.7rem;" onclick="removeItem(${cIdx}, ${iIdx})">حذف الصنف</button>
+        function renderAdmin() {
+            const container = document.getElementById('adminContainer');
+            container.innerHTML = db.map((cat, cIdx) => `
+                <div class="admin-card">
+                    <input class="modern-input" style="color:var(--gold); font-weight:bold; margin-bottom:15px;" 
+                           value="${cat.category}" 
+                           onchange="db[${cIdx}].category=this.value">
+                    
+                    ${cat.items.map((item, iIdx) => `
+                        <div style="background:#000; padding:15px; border-radius:15px; margin-top:10px; border:1px solid #222;">
+                            <input class="modern-input" style="margin-bottom:8px;" 
+                                   value="${item.name}" 
+                                   onchange="db[${cIdx}].items[${iIdx}].name=this.value"
+                                   placeholder="اسم الوجبة">
+                            
+                            <input class="modern-input" style="margin-bottom:8px;" 
+                                   value="${item.price}" 
+                                   onchange="db[${cIdx}].items[${iIdx}].price=this.value"
+                                   placeholder="السعر">
+                            
+                            <input class="modern-input" style="margin-bottom:8px;" 
+                                   value="${item.img}" 
+                                   onchange="db[${cIdx}].items[${iIdx}].img=this.value" 
+                                   placeholder="رابط الصورة">
+                            
+                            <input class="modern-input" style="margin-bottom:8px;" 
+                                   value="${item.desc || ''}" 
+                                   onchange="db[${cIdx}].items[${iIdx}].desc=this.value" 
+                                   placeholder="وصف الوجبة">
+                            
+                            <input class="modern-input" style="margin-bottom:10px;" 
+                                   value="${item.time || '10 د'}" 
+                                   onchange="db[${cIdx}].items[${iIdx}].time=this.value" 
+                                   placeholder="وقت التجهيز (مثال: 12 د)">
+                            
+                            <button onclick="db[${cIdx}].items.splice(${iIdx},1); renderAdmin()" 
+                                    style="color:#ff4444; background:none; border:none; font-size:0.8rem; cursor:pointer; padding:5px 10px;">
+                                <i class="fas fa-trash" style="margin-left:5px;"></i> حذف الصنف
+                            </button>
                         </div>
-                    `;
-                });
-
-                html += `
-                    <button class="btn-action btn-add" onclick="addItemToCat(${cIdx})">+ إضافة صنف لهذه الفئة</button>
-                </div>`;
-                container.innerHTML += html;
-            });
+                    `).join('')}
+                    
+                    <button onclick="addItem(${cIdx})" 
+                            style="width:100%; margin-top:15px; background:#333; color:#fff; border:none; padding:12px; border-radius:10px; cursor:pointer;">
+                        <i class="fas fa-plus" style="margin-left:5px;"></i> إضافة وجبة جديدة
+                    </button>
+                </div>
+            `).join('');
         }
 
-        // دوال التحكم (CRUD)
-        function updateCatName(cIdx, val) { db[cIdx].category = val; saveDB(); }
-        function removeCategory(cIdx) { if(confirm("حذف الفئة؟")) { db.splice(cIdx, 1); saveDB(); renderAdminContent(); } }
-        function addItemToCat(cIdx) { db[cIdx].items.push({ id: Date.now(), name: "صنف جديد", price: "0.00", desc: "وصف الصنف", time: "10 د", img: "" }); saveDB(); renderAdminContent(); }
-        function updateItem(cIdx, iIdx, field, val) { db[cIdx].items[iIdx][field] = val; saveDB(); }
-        function removeItem(cIdx, iIdx) { db[cIdx].items.splice(iIdx, 1); saveDB(); renderAdminContent(); }
-        function addCategory() { db.push({ id: Date.now(), category: "فئة جديدة", items: [] }); saveDB(); renderAdminContent(); }
+        function addItem(cIdx) { 
+            db[cIdx].items.push({ 
+                id: Date.now(), 
+                name: "وجبة جديدة", 
+                price: "2.50", 
+                img: "", 
+                desc: "وصف الوجبة", 
+                time: "10 د" 
+            }); 
+            renderAdmin(); 
+        }
         
-        function saveDB(
+        function addCategory() { 
+            db.push({ 
+                category: "قسم جديد", 
+                items: [] 
+            }); 
+            renderAdmin(); 
+        }
+        
+        function saveAndCloseAdmin() {
+            localStorage.setItem('sultan_final_v1', JSON.stringify(db));
+            document.getElementById('admin-panel').style.display = 'none';
+            document.getElementById('mainSearch').value = "";
+            renderMenu();
+            showNotification("تم حفظ التغييرات ✓");
+        }
+
+        function closeCart() { 
+            document.getElementById('cartModal').style.display = 'none'; 
+        }
+
+        window.onload = () => { 
+            renderMenu(); 
+            connect();
+            
+            document.addEventListener('keydown', function(e) {
+                if(e.key === 'Escape') {
+                    document.getElementById('cartModal').style.display = 'none';
+                    document.getElementById('itemModal').style.display = 'none';
+                    document.getElementById('admin-panel').style.display = 'none';
+                }
+            });
+        };
+    </script>
+</body>
+</html>
