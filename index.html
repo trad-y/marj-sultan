@@ -2,103 +2,162 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام الاتصال المرئي والصوتي المتكامل</title>
-    <!-- Font Awesome 6 للأيقونات المتطورة -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>رون - شبكة التواصل الاجتماعي</title>
+    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-        /* ====== المتغيرات العامة - قابلة للتعديل يدوياً ====== */
-        :root {
-            --primary: #2563eb;        /* اللون الأساسي - قابل للتغيير */
-            --primary-dark: #1d4ed8;    /* درجة أغمق للزر الرئيسي */
-            --success: #059669;         /* لون النجاح والمكالمات */
-            --danger: #dc2626;          /* لون الخطأ والرفض */
-            --warning: #d97706;         /* لون التحذير والمكالمات الواردة */
-            --bg: #0f172a;             /* خلفية الصفحة الرئيسية */
-            --card: #1e293b;           /* خلفية البطاقات */
-            --text: #f8fafc;           /* لون النص الأساسي */
-            --text-secondary: #94a3b8; /* لون النص الثانوي */
-            --border: #334155;         /* لون الحدود */
-            --font-main: 'Segoe UI', system-ui, -apple-system, sans-serif; /* الخط الرئيسي */
-            --border-radius-card: 24px; /* تدوير زوايا البطاقات */
-            --border-radius-btn: 12px;  /* تدوير زوايا الأزرار */
-            --transition-speed: 0.3s;   /* سرعة الحركة */
-        }
-
-        /* ====== إعادة تعيين وإعدادات أساسية ====== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #059669;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-top: env(safe-area-inset-top, 0px);
+        }
+
+        body.light-mode {
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
         }
 
         body {
-            font-family: var(--font-main);
             background-color: var(--bg);
             color: var(--text);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             min-height: 100vh;
-            overflow-x: hidden;
+            padding-top: var(--safe-top);
+            padding-bottom: var(--safe-bottom);
+            transition: all 0.3s ease;
         }
 
-        /* ====== شاشات الدخول والتسجيل ====== */
-        #setupScreen {
+        /* ===== شاشة التحميل ===== */
+        #loadingScreen {
             position: fixed;
             inset: 0;
-            background: linear-gradient(135deg, var(--bg) 0%, #1e1b4b 100%);
+            background: var(--bg);
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
-            transition: opacity 0.3s;
+            z-index: 9999;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== شاشة المصادقة ===== */
+        #authScreen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, var(--bg), #1e1b4b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9000;
+            padding: 20px;
+            overflow-y: auto;
         }
 
         .auth-card {
             background: var(--card);
-            padding: 40px;
-            border-radius: var(--border-radius-card);
-            text-align: center;
-            width: 90%;
-            max-width: 450px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            padding: 30px 20px;
+            border-radius: 32px;
+            width: 100%;
+            max-width: 400px;
             border: 1px solid var(--border);
-            animation: fadeIn 0.5s ease;
+            animation: fadeUp 0.5s;
         }
 
-        .auth-card h2 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 28px;
-            background: linear-gradient(to right, var(--primary), #7c3aed);
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .auth-logo h1 {
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
+        .auth-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .auth-tab.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
         .auth-input {
             width: 100%;
-            padding: 14px 16px;
-            border-radius: 12px;
+            padding: 16px 18px;
+            border-radius: 20px;
             border: 2px solid var(--border);
             background: var(--bg);
             color: var(--text);
             font-size: 16px;
             margin-bottom: 15px;
             outline: none;
-            transition: border-color 0.2s;
+            transition: all 0.2s;
         }
 
         .auth-input:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
         }
 
         .auth-btn {
             width: 100%;
-            padding: 14px;
-            border-radius: 12px;
+            padding: 16px;
+            border-radius: 20px;
             border: none;
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
@@ -106,756 +165,789 @@
             font-size: 16px;
             cursor: pointer;
             transition: all 0.2s;
+            margin-bottom: 15px;
+        }
+
+        .auth-btn:active { transform: scale(0.98); }
+        .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .auth-link {
+            color: var(--text-secondary);
+            cursor: pointer;
+            text-align: center;
+            font-size: 14px;
             margin-top: 10px;
         }
 
-        .auth-btn:hover {
-            transform: scale(1.02);
-            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.4);
-        }
+        .auth-link:hover { color: var(--primary); }
 
-        .auth-switch {
-            margin-top: 20px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .auth-switch:hover {
-            color: var(--primary);
-        }
-
-        /* ====== نافذة نسيت كلمة المرور ====== */
-        .forgot-password-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.8);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-        }
-
-        .forgot-modal-content {
-            background: var(--card);
-            padding: 30px;
-            border-radius: var(--border-radius-card);
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        /* ====== شاشة إدخال رمز التحقق ====== */
-        .verification-container {
+        .code-inputs {
             display: flex;
             gap: 10px;
             justify-content: center;
             margin: 20px 0;
+            direction: ltr;
         }
 
         .code-input {
-            width: 60px;
-            height: 70px;
+            width: 55px;
+            height: 65px;
             text-align: center;
             font-size: 28px;
             font-weight: bold;
             border: 2px solid var(--border);
-            border-radius: 12px;
+            border-radius: 16px;
             background: var(--bg);
             color: var(--text);
+            outline: none;
         }
 
-        .code-input:focus {
-            border-color: var(--primary);
+        .code-input:focus { border-color: var(--primary); }
+
+        #authError {
+            color: var(--danger);
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
         }
 
-        /* ====== التطبيق الرئيسي ====== */
-        .app-container {
-            width: 100%;
-            max-width: 1400px;
-            padding: 20px;
-            display: none;
+        /* ===== شريط التنقل السفلي ===== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 0 calc(8px + var(--safe-bottom));
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .bottom-nav.hide { transform: translateY(100%); }
+
+        .nav-item {
+            display: flex;
             flex-direction: column;
-            gap: 20px;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 11px;
+            flex: 1;
+            max-width: 70px;
+            transition: all 0.2s;
         }
 
+        .nav-item i { font-size: 22px; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item:active { transform: scale(0.95); }
+
+        /* ===== الهيدر الرئيسي ===== */
         .app-header {
             background: var(--card);
-            padding: 20px;
-            border-radius: 20px;
+            padding: 12px 16px;
+            border-radius: 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border: 1px solid var(--border);
+            margin: 10px 16px 16px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
         }
 
         .user-info {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
+            cursor: pointer;
+            flex: 1;
         }
 
         .user-avatar {
-            width: 50px;
-            height: 50px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), #7c3aed);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 20px;
             object-fit: cover;
+            border: 2px solid var(--primary);
         }
 
         .user-name {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
         }
 
-        .user-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-
-        .status-indicator {
-            width: 10px;
-            height: 10px;
+        .online-dot {
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            background-color: var(--success);
+            background: var(--success);
+            display: inline-block;
             animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
         }
 
-        /* ====== شريط التحكم ====== */
-        .control-bar {
-            background: var(--card);
-            padding: 20px;
-            border-radius: 20px;
+        .header-actions {
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--bg);
             border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
         }
 
-        .search-container {
+        .btn-icon:active {
+            background: var(--primary);
+            transform: scale(0.95);
+        }
+
+        .btn-icon.has-notification {
             position: relative;
-            flex: 1;
-            min-width: 300px;
         }
 
-        .search-container input {
+        .btn-icon.has-notification::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 10px;
+            height: 10px;
+            background: var(--danger);
+            border-radius: 50%;
+            border: 2px solid var(--card);
+        }
+
+        /* ===== قائمة الإشعارات ===== */
+        .notifications-panel {
+            position: fixed;
+            top: 80px;
+            left: 16px;
+            right: 16px;
+            max-width: 400px;
+            margin: 0 auto;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 1000;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+
+        .notification-item:active { background: var(--bg); }
+        .notification-item:last-child { border-bottom: none; }
+
+        .notification-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* ===== الشاشات ===== */
+        .screen {
+            display: none;
             width: 100%;
-            padding: 14px 20px 14px 45px;
-            border-radius: 12px;
+            min-height: calc(100vh - 160px);
+            padding-bottom: 80px;
+        }
+
+        .screen.active { display: block; }
+
+        /* ===== الصفحة الرئيسية ===== */
+        .search-box {
+            position: relative;
+            margin: 0 16px 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 16px 20px 16px 50px;
+            border-radius: 30px;
             border: 2px solid var(--border);
             background: var(--bg);
             color: var(--text);
             font-size: 16px;
-            transition: all 0.3s;
         }
 
-        .search-container i {
+        .search-box i {
             position: absolute;
-            left: 15px;
+            left: 18px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-secondary);
         }
 
-        .call-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        /* ====== قائمة المستخدمين المتصلين ====== */
-        .users-section {
+        .search-results {
+            position: absolute;
+            width: 100%;
             background: var(--card);
-            padding: 20px;
-            border-radius: 20px;
+            border-radius: 24px;
+            margin-top: 8px;
+            display: none;
+            z-index: 100;
+            max-height: 300px;
+            overflow-y: auto;
             border: 1px solid var(--border);
         }
 
-        .users-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-            max-height: 300px;
-            overflow-y: auto;
-            padding: 5px;
-        }
-
-        .user-card {
+        .search-item {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px;
-            background: var(--bg);
-            border-radius: 16px;
+            padding: 12px 16px;
             cursor: pointer;
-            transition: all 0.2s;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-item:active { background: var(--bg); }
+        .search-item:last-child { border-bottom: none; }
+
+        .search-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .stories-section {
+            background: var(--card);
+            padding: 16px;
+            border-radius: 24px;
             border: 1px solid var(--border);
+            margin: 0 16px 20px;
         }
 
-        .user-card:hover {
-            background: var(--border);
-            transform: translateY(-2px);
+        .stories-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
         }
 
-        .user-card-avatar {
+        .stories-header h3 {
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stories-container {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding: 4px 0;
+            scrollbar-width: none;
+        }
+
+        .stories-container::-webkit-scrollbar { display: none; }
+
+        .story-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            min-width: 70px;
+        }
+
+        .story-avatar {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            border: 3px solid var(--primary);
+            object-fit: cover;
+            margin-bottom: 6px;
+        }
+
+        .story-avatar.add {
+            border: 2px dashed var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: var(--primary);
+            background: var(--bg);
+        }
+
+        .story-name {
+            font-size: 12px;
+            color: var(--text-secondary);
+            max-width: 70px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .suggestions-section {
+            background: var(--card);
+            padding: 20px 16px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            margin: 0 16px 20px;
+        }
+
+        .suggestion-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .suggestion-item:last-child { border-bottom: none; }
+
+        .suggestion-avatar {
             width: 50px;
             height: 50px;
             border-radius: 50%;
             object-fit: cover;
+        }
+
+        .suggestion-info { flex: 1; }
+        .suggestion-name { font-weight: 600; }
+        .suggestion-bio { font-size: 12px; color: var(--text-secondary); }
+
+        .follow-btn {
+            padding: 8px 16px;
+            border-radius: 30px;
+            border: 1px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .follow-btn.following {
             background: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 20px;
             color: white;
         }
 
-        .user-card-info {
-            flex: 1;
+        .follow-btn:active { transform: scale(0.95); }
+
+        .chats-section {
+            background: var(--card);
+            padding: 20px 16px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            margin: 0 16px;
         }
 
-        .user-card-name {
+        .chat-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .chat-item:last-child { border-bottom: none; }
+        .chat-item:active { background: var(--bg); }
+
+        .chat-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .chat-info { flex: 1; }
+        .chat-name {
             font-weight: 600;
             margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .chat-last {
+            font-size: 13px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
         }
 
-        .user-card-status {
+        .unread-badge {
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 12px;
+            font-weight: bold;
+        }
+
+        .offline-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+            display: inline-block;
+        }
+
+        /* ===== تحميل البيانات ===== */
+        .loading-spinner {
+            text-align: center;
+            padding: 30px;
             color: var(--text-secondary);
         }
 
-        .user-card-status.online { color: var(--success); }
-        .user-card-status.in-call { color: var(--warning); }
-
-        /* ====== زر الاتصال العشوائي مع حركة التقليب ====== */
-        .btn-random {
-            background: linear-gradient(135deg, #9333ea, #7e22ce);
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-random i {
-            transition: transform 0.3s;
-        }
-
-        .btn-random.flip i {
-            transform: rotate(360deg);
-        }
-
-        /* ====== تأثير التقليب لصندوق الفيديو عند الاتصال العشوائي ====== */
-        @keyframes flipVideo {
-            0% { transform: rotateY(0deg); }
-            50% { transform: rotateY(180deg); }
-            100% { transform: rotateY(0deg); }
-        }
-
-        .video-box.flip-animation {
-            animation: flipVideo 0.6s ease;
-        }
-
-        /* ====== مربعات الفيديو ====== */
-        .video-container {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .video-column {
-            flex: 1;
-            min-width: 300px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .video-box {
-            position: relative;
-            background: #000;
-            border-radius: 20px;
-            overflow: hidden;
-            border: 2px solid var(--border);
-            aspect-ratio: 16/9;
-            transition: all 0.3s;
-            will-change: transform;
-        }
-
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            background: #000;
-        }
-
-        /* ====== إصلاح انعكاس الكاميرا المحلية ====== */
-        #localVideo {
-            transform: scaleX(-1); /* عكس الكاميرا لتصبح كالمرآة */
-        }
-
-        .video-label {
-            position: absolute;
-            bottom: 15px;
-            left: 15px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .video-overlay {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .mic-indicator, .cam-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-
-        .mic-indicator.on, .cam-indicator.on { background-color: var(--success); }
-        .mic-indicator.off, .cam-indicator.off { background-color: var(--danger); }
-
-        /* ====== فلاتر تجميلية ====== */
-        .filter-controls {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 15px;
-            padding: 15px;
-            background: var(--bg);
-            border-radius: 16px;
-            justify-content: center;
-        }
-
-        .filter-btn {
-            padding: 10px 16px;
-            border: 1px solid var(--border);
-            border-radius: 30px;
-            background: var(--card);
-            color: var(--text);
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-        }
-
-        .filter-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
-        }
-
-        .filter-btn i {
-            font-size: 16px;
-        }
-
-        /* ====== الأزرار السفلية ====== */
-        .bottom-controls {
-            background: var(--card);
-            padding: 20px;
-            border-radius: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 20px;
-            border: 1px solid var(--border);
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 14px 24px;
-            border-radius: 12px;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 16px;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.2s;
-            min-width: 140px;
-            justify-content: center;
-        }
-
-        .btn i {
-            font-size: 18px;
-        }
-
-        .btn-main { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; }
-        .btn-video { background: linear-gradient(135deg, var(--success), #047857); color: white; }
-        .btn-audio { background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white; }
-        .btn-danger { background: linear-gradient(135deg, var(--danger), #b91c1c); color: white; }
-        .btn-end-call { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; width: 200px; }
-
-        .btn-toggle {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            background: var(--bg);
-            color: white;
-            font-size: 24px;
-            transition: all 0.2s;
-        }
-
-        .btn-toggle.active { background: var(--success); }
-        .btn-toggle.inactive { background: var(--danger); }
-
-        /* ====== نافذة المكالمة الواردة ====== */
-        .incoming-call-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-        }
-
-        .call-modal-content {
-            background: var(--card);
-            padding: 40px;
-            border-radius: 24px;
+        .empty-state {
             text-align: center;
-            max-width: 500px;
-            width: 90%;
-            animation: modalAppear 0.3s ease;
-        }
-
-        .caller-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            margin: 0 auto 20px;
-            color: white;
-        }
-
-        /* ====== حالة الاتصال ====== */
-        .status-footer {
-            margin-top: 20px;
-            text-align: center;
-            font-size: 14px;
+            padding: 30px;
             color: var(--text-secondary);
         }
 
-        .status-connected { color: var(--success); }
-        .status-disconnected { color: var(--danger); }
-
-        /* ====== تحسينات للأجهزة المحمولة ====== */
-        @media (max-width: 768px) {
-            .control-bar { flex-direction: column; }
-            .search-container { min-width: 100%; }
-            .btn { min-width: 120px; }
-            .code-input { width: 50px; height: 60px; font-size: 24px; }
-            .users-grid { grid-template-columns: 1fr; }
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
         }
-
-        /* ====== علامات التعديل اليدوي ====== */
-        /* EDITABLE: أضف أو عدل أي ألوان أو أحجام من قسم :root أعلاه */
-        /* EDITABLE: لتغيير انعكاس الكاميرا المحلية، عدل transform: scaleX(-1) في #localVideo */
-        /* EDITABLE: لتعديل سرعة حركة التقليب، غير مدة animation في .flip-animation */
-        /* EDITABLE: أضف أي تنسيقات مخصصة هنا */
     </style>
 </head>
 <body>
-
-    <!-- ====== شاشة المصادقة (تسجيل الدخول / إنشاء حساب) ====== -->
-    <div id="setupScreen">
-        <div class="auth-card" id="authContainer">
-            <!-- يتم تبديل المحتوى ديناميكياً عبر JavaScript -->
-        </div>
+    <!-- شاشة التحميل -->
+    <div id="loadingScreen">
+        <div class="loader"></div>
+        <h2>رون</h2>
+        <p style="color: var(--text-secondary);">جاري التحميل...</p>
     </div>
 
-    <!-- ====== نافذة نسيت كلمة المرور ====== -->
-    <div class="forgot-password-modal" id="forgotPasswordModal">
-        <div class="forgot-modal-content">
-            <h2 style="margin-bottom: 20px;">استعادة كلمة المرور</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 25px;">أدخل بريدك الإلكتروني لاستلام رمز التحقق</p>
-            <input type="email" id="forgotEmail" class="auth-input" placeholder="البريد الإلكتروني">
-            <div id="resetCodeSection" style="display: none;">
-                <div class="verification-container" style="margin: 15px 0;">
-                    <input type="text" class="code-input" maxlength="1" oninput="moveToNext(this, 0)" onkeyup="handleCodeInput(event, this, 0)">
-                    <input type="text" class="code-input" maxlength="1" oninput="moveToNext(this, 1)" onkeyup="handleCodeInput(event, this, 1)">
-                    <input type="text" class="code-input" maxlength="1" oninput="moveToNext(this, 2)" onkeyup="handleCodeInput(event, this, 2)">
-                    <input type="text" class="code-input" maxlength="1" oninput="moveToNext(this, 3)" onkeyup="handleCodeInput(event, this, 3)">
-                </div>
-                <input type="password" id="newPassword" class="auth-input" placeholder="كلمة المرور الجديدة">
+    <!-- شاشة المصادقة -->
+    <div id="authScreen">
+        <div class="auth-card" id="authCard">
+            <div class="auth-logo">
+                <h1>رون</h1>
+                <p style="color: var(--text-secondary);">تواصل بطريقتك</p>
             </div>
-            <button class="auth-btn" id="forgotActionBtn">إرسال الرمز</button>
-            <div class="auth-switch" onclick="document.getElementById('forgotPasswordModal').style.display='none'">إلغاء</div>
-            <div id="forgotError" style="color: var(--danger); margin-top: 15px;"></div>
+            <div class="auth-tabs">
+                <div class="auth-tab active" onclick="switchAuthTab('login')">تسجيل الدخول</div>
+                <div class="auth-tab" onclick="switchAuthTab('signup')">إنشاء حساب</div>
+            </div>
+            <div id="authContent"></div>
         </div>
     </div>
 
-    <!-- ====== التطبيق الرئيسي ====== -->
-    <div class="app-container" id="mainApp">
+    <!-- التطبيق الرئيسي -->
+    <div id="mainApp" style="display: none;">
         <!-- الهيدر -->
         <div class="app-header">
-            <div class="user-info">
-                <img class="user-avatar" id="userAvatar" src="https://via.placeholder.com/50" alt="صورة المستخدم">
+            <div class="user-info" onclick="navigateTo('profile')">
+                <img class="user-avatar" id="headerAvatar" src="" alt="avatar">
                 <div>
-                    <div class="user-name" id="myNameLabel">مستخدم</div>
-                    <div class="user-status">
-                        <div class="status-indicator"></div>
-                        <span id="connectionStatus">متصل بالسيرفر</span>
+                    <div class="user-name" id="headerName"></div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span class="online-dot"></span>
+                        <span id="connectionStatus">متصل</span>
                     </div>
                 </div>
             </div>
-            <div class="header-actions" style="display: flex; gap: 15px;">
-                <button class="btn-toggle" id="uploadAvatarBtn" style="width: 50px; height: 50px; font-size: 20px;" title="تغيير الصورة الشخصية">
-                    <i class="fas fa-camera"></i>
-                </button>
-                <input type="file" id="avatarUploadInput" accept="image/*" style="display: none;">
-            </div>
-            <div class="call-timer" id="callTimer" style="display: none;">
-                <span style="font-weight: bold; color: var(--success);"><i class="fas fa-clock"></i> <span id="timerDisplay">00:00</span></span>
+            <div class="header-actions">
+                <button class="btn-icon" id="notificationsBtn"><i class="fas fa-bell"></i></button>
+                <button class="btn-icon" id="uploadAvatarBtn"><i class="fas fa-camera"></i></button>
+                <input type="file" id="avatarInput" accept="image/*" style="display: none;">
             </div>
         </div>
 
-        <!-- شريط التحكم -->
-        <div class="control-bar">
-            <div class="search-container">
+        <!-- قائمة الإشعارات -->
+        <div class="notifications-panel" id="notificationsPanel"></div>
+
+        <!-- الصفحة الرئيسية -->
+        <div class="screen active" id="homeScreen">
+            <!-- البحث -->
+            <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" id="targetNameInput" placeholder="ابحث عن مستخدم للاتصال به...">
-                <div class="search-results" id="searchResults" style="position: absolute; width: 100%; background: var(--card); border-radius: 12px; margin-top: 5px; display: none; z-index: 100;"></div>
+                <input type="text" id="searchInput" placeholder="ابحث عن أصدقاء...">
+                <div class="search-results" id="searchResults"></div>
             </div>
-            <div class="call-buttons">
-                <button class="btn btn-audio" onclick="callUser('audio')">
-                    <i class="fas fa-phone-alt"></i>
-                    <span>اتصال صوتي</span>
-                </button>
-                <button class="btn btn-video" onclick="callUser('video')">
-                    <i class="fas fa-video"></i>
-                    <span>اتصال مرئي</span>
-                </button>
-                <button class="btn btn-random" id="randomCallBtn" onclick="requestRandomCall()">
-                    <i class="fas fa-random"></i>
-                    <span>اتصال عشوائي</span>
-                </button>
-            </div>
-        </div>
 
-        <!-- قائمة المستخدمين المتصلين -->
-        <div class="users-section">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="color: var(--text);"><i class="fas fa-users" style="margin-left: 10px;"></i> المستخدمون المتصلون</h3>
-                <span style="background: var(--primary); padding: 5px 12px; border-radius: 20px; font-size: 14px;" id="onlineCount">0</span>
-            </div>
-            <div class="users-grid" id="onlineUsersGrid"></div>
-        </div>
-
-        <!-- شبكة الفيديو -->
-        <div class="video-container">
-            <div class="video-column">
-                <div class="video-box" id="localVideoContainer">
-                    <video id="localVideo" autoplay playsinline muted></video>
-                    <div class="video-label">
-                        <span>أنت</span>
-                        <div class="mic-indicator on" id="localMicIndicator"></div>
-                        <div class="cam-indicator on" id="localCamIndicator"></div>
-                    </div>
-                    <div class="video-overlay">
-                        <button class="btn-toggle" id="toggleVideoBtn">
-                            <i class="fas fa-video"></i>
-                        </button>
-                        <button class="btn-toggle" id="toggleAudioBtn">
-                            <i class="fas fa-microphone"></i>
-                        </button>
-                    </div>
+            <!-- القصص -->
+            <div class="stories-section">
+                <div class="stories-header">
+                    <h3><i class="fas fa-circle" style="color: var(--primary); font-size: 12px;"></i> القصص</h3>
+                    <button class="btn-icon" style="width: 36px; height: 36px;" onclick="showAddStory()"><i class="fas fa-plus"></i></button>
                 </div>
-                <!-- فلاتر تجميلية -->
-                <div class="filter-controls">
-                    <button class="filter-btn active" data-filter="none"><i class="fas fa-ban"></i> عادي</button>
-                    <button class="filter-btn" data-filter="grayscale(1)"><i class="fas fa-palette"></i> أبيض وأسود</button>
-                    <button class="filter-btn" data-filter="sepia(0.8)"><i class="fas fa-image"></i> بني داكن</button>
-                    <button class="filter-btn" data-filter="blur(3px)"><i class="fas fa-cloud"></i> ضباب</button>
-                    <button class="filter-btn" data-filter="invert(1)"><i class="fas fa-adjust"></i> سلبي</button>
-                    <button class="filter-btn" data-filter="contrast(1.5)"><i class="fas fa-circle"></i> تباين عالي</button>
-                </div>
-            </div>
-            <div class="video-column">
-                <div class="video-box" id="remoteVideoContainer">
-                    <video id="remoteVideo" autoplay playsinline></video>
-                    <div class="video-label" id="remoteTag">
-                        <span>في انتظار الاتصال...</span>
-                        <div class="mic-indicator off" id="remoteMicIndicator"></div>
-                        <div class="cam-indicator off" id="remoteCamIndicator"></div>
+                <div class="stories-container" id="storiesList">
+                    <div class="story-item" onclick="showAddStory()">
+                        <div class="story-avatar add"><i class="fas fa-plus"></i></div>
+                        <span class="story-name">إضافة</span>
                     </div>
                 </div>
             </div>
+
+            <!-- اقتراحات المتابعة -->
+            <div class="suggestions-section" id="suggestionsSection">
+                <h3 style="margin-bottom: 15px;">اقتراحات لمتابعتك</h3>
+                <div id="suggestionsList"></div>
+            </div>
+
+            <!-- المحادثات الأخيرة -->
+            <div class="chats-section">
+                <h3 style="margin-bottom: 15px;">المحادثات</h3>
+                <div id="chatsList"></div>
+            </div>
         </div>
 
-        <!-- لوحة التحكم السفلية -->
-        <div class="bottom-controls">
-            <button class="btn-toggle active" id="toggleMicBtn">
-                <i class="fas fa-microphone"></i>
-            </button>
-            <button class="btn-toggle active" id="toggleCamBtn">
-                <i class="fas fa-video"></i>
-            </button>
-            <!-- زر تبديل الكاميرا الأمامية/الخلفية -->
-            <button class="btn-toggle" id="flipCameraBtn" onclick="flipCamera()">
-                <i class="fas fa-sync-alt"></i>
-            </button>
-            <button class="btn btn-end-call" id="endCallBtn" onclick="endCall()" style="display: none;">
-                <i class="fas fa-phone-slash"></i>
-                <span>إنهاء المكالمة</span>
-            </button>
-            <button class="btn btn-danger" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>خروج</span>
-            </button>
+        <!-- صفحة الملف الشخصي -->
+        <div class="screen" id="profileScreen">
+            <div style="padding: 20px;">
+                <div style="background: var(--card); border-radius: 24px; padding: 30px 20px; border: 1px solid var(--border);">
+                    <!-- صورة الملف -->
+                    <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 30px;">
+                        <img src="" id="profileAvatar" class="user-avatar" style="width: 100px; height: 100px; margin-bottom: 15px;">
+                        <h2 id="profileUsername"></h2>
+                        <p id="profileBio" style="color: var(--text-secondary); text-align: center; margin: 10px 0;"></p>
+                        
+                        <!-- الإحصائيات -->
+                        <div style="display: flex; gap: 30px; margin: 20px 0;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 20px; font-weight: bold; color: var(--primary);" id="followersCount">0</div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">متابعون</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 20px; font-weight: bold; color: var(--primary);" id="followingCount">0</div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">يتابع</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 20px; font-weight: bold; color: var(--primary);" id="storiesCount">0</div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">قصص</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- نموذج التعديل -->
+                    <h3 style="margin-bottom: 15px;">تعديل الملف الشخصي</h3>
+                    <input type="text" class="auth-input" id="editName" placeholder="الاسم">
+                    <input type="text" class="auth-input" id="editUsername" placeholder="اسم المستخدم">
+                    <textarea class="auth-input" id="editBio" placeholder="السيرة الذاتية" rows="3"></textarea>
+                    <input type="password" class="auth-input" id="editPassword" placeholder="كلمة مرور جديدة (اختياري)">
+                    <button class="auth-btn" onclick="updateProfile()">حفظ التغييرات</button>
+                    <button class="auth-btn" style="background: var(--danger);" onclick="logout()">تسجيل الخروج</button>
+                </div>
+            </div>
         </div>
 
-        <!-- حالة النظام -->
-        <div class="status-footer">
-            <span id="statusMsg">الحالة: <span class="status-connected">متصل بالسيرفر</span></span> | 
-            <span id="onlineUsers">المستخدمون المتصلون: 1</span>
+        <!-- صفحة الإعدادات -->
+        <div class="screen" id="settingsScreen">
+            <div style="padding: 20px;">
+                <div style="background: var(--card); border-radius: 24px; padding: 30px 20px; border: 1px solid var(--border);">
+                    <h2 style="margin-bottom: 20px;">الإعدادات</h2>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border);">
+                        <span>المظهر الداكن</span>
+                        <div class="theme-switch" id="themeSwitch" style="width: 60px; height: 30px; background: var(--border); border-radius: 30px; position: relative; cursor: pointer;">
+                            <div style="width: 26px; height: 26px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: 0.3s;"></div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border);">
+                        <span>حجم الخط</span>
+                        <input type="range" id="fontSize" min="12" max="24" value="16">
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
+                        <span>نوع الخط</span>
+                        <select id="fontFamily" style="background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 12px;">
+                            <option value="'Segoe UI', system-ui">افتراضي</option>
+                            <option value="'Cairo', sans-serif">القاهرة</option>
+                            <option value="'Tajawal', sans-serif">تاجوال</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <!-- صفحة الدردشة (ستضاف في الرد الثاني) -->
+        <!-- صفحة القصص (ستضاف في الرد الثاني) -->
+        <!-- نافذة المكالمات (ستضاف في الرد الثاني) -->
     </div>
 
-    <!-- نافذة المكالمة الواردة -->
-    <div class="incoming-call-modal" id="incomingCallModal">
-        <div class="call-modal-content">
-            <div class="caller-info">
-                <div class="caller-avatar" id="callerAvatar">?</div>
-                <div>
-                    <div style="font-size: 24px; font-weight: bold;" id="callerName">مستخدم</div>
-                    <div class="call-type" id="incomingCallType">اتصال صوتي</div>
-                </div>
-            </div>
-            <p style="color: var(--text-secondary); margin-bottom: 30px;">يريد الاتصال بك</p>
-            <div class="call-actions">
-                <button class="btn btn-danger" onclick="rejectCall()" style="min-width: 120px;">
-                    <i class="fas fa-times"></i> رفض
-                </button>
-                <button class="btn btn-success" onclick="acceptCall()" style="min-width: 120px;">
-                    <i class="fas fa-check"></i> قبول
-                </button>
-            </div>
-        </div>
+    <!-- شريط التنقل السفلي -->
+    <div class="bottom-nav">
+        <div class="nav-item active" data-screen="home"><i class="fas fa-home"></i><span>الرئيسية</span></div>
+        <div class="nav-item" data-screen="profile"><i class="fas fa-user"></i><span>الملف</span></div>
+        <div class="nav-item" data-screen="settings"><i class="fas fa-cog"></i><span>الإعدادات</span></div>
     </div>
+
+    <!-- حاوية التنبيهات -->
+    <div id="toastContainer" style="position: fixed; bottom: 80px; left: 16px; right: 16px; z-index: 9999; pointer-events: none;"></div>
 
     <script>
-        // ==================== المتغيرات العامة ====================
-        // EDITABLE: عنوان السيرفر - قم بتغييره إلى IP التيرمكس
-        const SERVER_URL = "http://192.168.1.126:3000";
-        
-        let socket;
-        let myName = "";
-        let myEmail = "";
-        let myUserId = null;
-        let localStream = null;
-        let peerConnection = null;
-        let currentCall = null;
-        let callTimer = null;
-        let callStartTime = null;
-        let callType = null;
-        let isCallActive = false;
-        let incomingCallData = null;
-        let connectedUsers = [];
-        
-        // قائمة انتظار الاتصال العشوائي
-        let isWaitingRandom = false;
-        
-        // كاميرات متاحة
-        let videoDevices = [];
-        let currentDeviceId = null;
+        // ==================== إعدادات أولية ====================
+        const SERVER_URL = 'http://192.168.1.126:3000'; // غير الرابط حسب عنوان السيرفر
+        let socket = null;
+        let currentUser = {
+            id: null,
+            name: null,
+            email: null,
+            avatar: null,
+            bio: null
+        };
+        let onlineUsers = new Map();
+        let notifications = [];
+        let stories = [];
+        let chats = [];
+        let suggestions = [];
+        let following = new Set();
 
-        // إعدادات ICE
-        const config = { 
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' }
-            ] 
+        // ==================== عناصر DOM ====================
+        const loadingScreen = document.getElementById('loadingScreen');
+        const authScreen = document.getElementById('authScreen');
+        const mainApp = document.getElementById('mainApp');
+        const authContent = document.getElementById('authContent');
+
+        // ==================== التهيئة ====================
+        window.onload = () => {
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                showLoginTab();
+            }, 1000);
         };
 
-        // ==================== نظام المصادقة ====================
-        const authContainer = document.getElementById('authContainer');
+        // ==================== التنقل بين الشاشات ====================
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                this.classList.add('active');
+                const target = this.dataset.screen;
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(target + 'Screen').classList.add('active');
+                
+                if (target === 'profile' && currentUser.id) loadProfile();
+            });
+        });
 
-        function showLoginScreen() {
-            authContainer.innerHTML = `
-                <h2>تسجيل الدخول</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 25px;">أدخل بريدك الإلكتروني وكلمة المرور</p>
-                <input type="email" id="loginEmail" class="auth-input" placeholder="البريد الإلكتروني">
-                <input type="password" id="loginPassword" class="auth-input" placeholder="كلمة المرور">
-                <button class="auth-btn" onclick="login()">دخول</button>
-                <div style="margin-top: 15px;">
-                    <span class="auth-switch" onclick="showForgotPassword()">نسيت كلمة المرور؟</span>
+        window.navigateTo = (screen) => {
+            document.querySelector(`[data-screen="${screen}"]`).click();
+        };
+
+        // ==================== المصادقة ====================
+        window.switchAuthTab = (tab) => {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            if (tab === 'login') showLoginTab();
+            else showSignupTab();
+        };
+
+        function showLoginTab() {
+            authContent.innerHTML = `
+                <div>
+                    <input type="email" id="loginEmail" class="auth-input" placeholder="البريد الإلكتروني">
+                    <input type="password" id="loginPassword" class="auth-input" placeholder="كلمة المرور">
+                    <button class="auth-btn" onclick="login()">تسجيل الدخول</button>
+                    <div class="auth-link" onclick="showForgotPassword()">نسيت كلمة المرور؟</div>
+                    <div id="authError"></div>
                 </div>
-                <div class="auth-switch" onclick="showSignupScreen()">ليس لديك حساب؟ أنشئ حساب جديد</div>
-                <div id="authError" style="color: var(--danger); margin-top: 15px; font-size: 14px;"></div>
             `;
         }
 
-        function showSignupScreen() {
-            authContainer.innerHTML = `
-                <h2>إنشاء حساب جديد</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 25px;">أدخل بريدك الإلكتروني واسم المستخدم</p>
-                <input type="email" id="signupEmail" class="auth-input" placeholder="البريد الإلكتروني">
-                <input type="text" id="signupUsername" class="auth-input" placeholder="اسم المستخدم">
-                <input type="password" id="signupPassword" class="auth-input" placeholder="كلمة المرور">
-                <button class="auth-btn" onclick="sendVerificationCode()">إرسال رمز التحقق</button>
-                <div class="auth-switch" onclick="showLoginScreen()">لديك حساب؟ سجل دخول</div>
-                <div id="authError" style="color: var(--danger); margin-top: 15px; font-size: 14px;"></div>
-            `;
-        }
-
-        function showVerificationScreen(email, username, password) {
-            authContainer.innerHTML = `
-                <h2>تأكيد البريد الإلكتروني</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 25px;">أدخل رمز التحقق المكون من 4 أرقام المرسل إلى</p>
-                <p style="font-weight: bold; color: var(--primary); margin-bottom: 20px;">${email}</p>
-                <div class="verification-container">
-                    <input type="text" class="code-input" maxlength="1" oninput="moveToNext(this, 0)" onkeyup="handleCodeInput(event, this, 0)">
-                    <input type="text" class="code-input" maxlength="1" oninput="moveToNext(this, 1)" onkeyup="handleCodeInput(event, this, 1)">
-                    <input type="text" class="code-input" maxlength="1" oninput="moveToNext(this, 2)" onkeyup="handleCodeInput(event, this, 2)">
-                    <input type="text" class="code-input" maxlength="1" oninput="moveToNext(this, 3)" onkeyup="handleCodeInput(event, this, 3)">
+        function showSignupTab() {
+            authContent.innerHTML = `
+                <div>
+                    <input type="email" id="signupEmail" class="auth-input" placeholder="البريد الإلكتروني">
+                    <input type="text" id="signupName" class="auth-input" placeholder="الاسم">
+                    <input type="password" id="signupPassword" class="auth-input" placeholder="كلمة المرور">
+                    <button class="auth-btn" onclick="sendVerification()">إرسال رمز التحقق</button>
+                    <div id="authError"></div>
                 </div>
-                <button class="auth-btn" onclick="verifyCode('${email}', '${username}', '${password}')">تأكيد</button>
-                <div class="auth-switch" onclick="showSignupScreen()">تغيير البريد الإلكتروني</div>
-                <div id="authError" style="color: var(--danger); margin-top: 15px;"></div>
             `;
-            setTimeout(() => document.querySelector('.code-input')?.focus(), 100);
         }
 
-        // التنقل بين حقول رمز التحقق
+        window.showForgotPassword = () => {
+            authContent.innerHTML = `
+                <div>
+                    <h3 style="text-align: center; margin-bottom: 20px;">استعادة كلمة المرور</h3>
+                    <input type="email" id="forgotEmail" class="auth-input" placeholder="البريد الإلكتروني">
+                    <button class="auth-btn" onclick="sendResetCode()">إرسال رمز</button>
+                    <div class="auth-link" onclick="showLoginTab()">العودة</div>
+                    <div id="authError"></div>
+                </div>
+            `;
+        };
+
+        // ==================== دوال المصادقة ====================
+        window.sendVerification = async () => {
+            const email = document.getElementById('signupEmail')?.value;
+            const username = document.getElementById('signupName')?.value;
+            const password = document.getElementById('signupPassword')?.value;
+            
+            if (!email || !username || !password) {
+                return showAuthError('جميع الحقول مطلوبة');
+            }
+
+            try {
+                const res = await fetch(`${SERVER_URL}/send-verification`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, username, password })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    showVerificationCode(email, username, password);
+                } else {
+                    showAuthError(data.message);
+                }
+            } catch (err) {
+                showAuthError('خطأ في الاتصال');
+            }
+        };
+
+        function showVerificationCode(email, username, password) {
+            authContent.innerHTML = `
+                <div>
+                    <h3 style="text-align: center; margin-bottom: 10px;">رمز التحقق</h3>
+                    <p style="text-align: center; color: var(--text-secondary); margin-bottom: 20px;">أدخل الرمز المرسل إلى ${email}</p>
+                    <div class="code-inputs">
+                        <input type="text" class="code-input" maxlength="1" oninput="moveToNext(this,0)" onkeyup="handleCodeInput(event,this,0)">
+                        <input type="text" class="code-input" maxlength="1" oninput="moveToNext(this,1)" onkeyup="handleCodeInput(event,this,1)">
+                        <input type="text" class="code-input" maxlength="1" oninput="moveToNext(this,2)" onkeyup="handleCodeInput(event,this,2)">
+                        <input type="text" class="code-input" maxlength="1" oninput="moveToNext(this,3)" onkeyup="handleCodeInput(event,this,3)">
+                    </div>
+                    <button class="auth-btn" onclick="verifyCode('${email}','${username}','${password}')">تأكيد</button>
+                    <div id="authError"></div>
+                </div>
+            `;
+        }
+
         window.moveToNext = (input, index) => {
             if (input.value.length === 1 && index < 3) {
                 input.parentElement.children[index + 1].focus();
@@ -868,743 +960,1605 @@
             }
         };
 
-        // إرسال رمز التحقق عبر البريد
-        async function sendVerificationCode() {
-            const email = document.getElementById('signupEmail')?.value;
-            const username = document.getElementById('signupUsername')?.value;
-            const password = document.getElementById('signupPassword')?.value;
-            const errorEl = document.getElementById('authError');
-
-            if (!email || !username || !password) {
-                errorEl.innerText = 'يرجى ملء جميع الحقول';
-                return;
-            }
-
-            if (!validateEmail(email)) {
-                errorEl.innerText = 'البريد الإلكتروني غير صحيح';
-                return;
-            }
-
-            try {
-                const response = await fetch(`${SERVER_URL}/send-verification`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, username, password })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    showVerificationScreen(email, username, password);
-                } else {
-                    errorEl.innerText = data.message || 'فشل إرسال الرمز';
-                }
-            } catch (err) {
-                errorEl.innerText = 'خطأ في الاتصال بالسيرفر';
-            }
-        }
-
-        // التحقق من الرمز
-        async function verifyCode(email, username, password) {
+        window.verifyCode = async (email, username, password) => {
             const inputs = document.querySelectorAll('.code-input');
             let code = '';
-            inputs.forEach(input => code += input.value);
-            const errorEl = document.getElementById('authError');
-
+            inputs.forEach(i => code += i.value);
+            
             if (code.length !== 4) {
-                errorEl.innerText = 'يرجى إدخال الرمز المكون من 4 أرقام';
-                return;
+                return showAuthError('أدخل الرمز كاملاً');
             }
 
             try {
-                const response = await fetch(`${SERVER_URL}/verify-code`, {
+                const verifyRes = await fetch(`${SERVER_URL}/verify-code`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, code })
                 });
-                const data = await response.json();
-                if (data.success) {
-                    const registerResponse = await fetch(`${SERVER_URL}/register`, {
+                const verifyData = await verifyRes.json();
+                
+                if (verifyData.success) {
+                    const registerRes = await fetch(`${SERVER_URL}/register`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email, username, password })
                     });
-                    const registerData = await registerResponse.json();
+                    const registerData = await registerRes.json();
+                    
                     if (registerData.success) {
-                        alert('تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن.');
-                        showLoginScreen();
+                        showToast('تم إنشاء الحساب بنجاح', 'success');
+                        showLoginTab();
                     } else {
-                        errorEl.innerText = registerData.message || 'فشل إنشاء الحساب';
+                        showAuthError(registerData.message);
                     }
                 } else {
-                    errorEl.innerText = data.message || 'رمز التحقق غير صحيح';
+                    showAuthError(verifyData.message);
                 }
             } catch (err) {
-                errorEl.innerText = 'خطأ في الاتصال بالسيرفر';
+                showAuthError('خطأ في الاتصال');
             }
-        }
+        };
 
-        // ==================== نسيت كلمة المرور ====================
-        function showForgotPassword() {
-            const modal = document.getElementById('forgotPasswordModal');
-            modal.style.display = 'flex';
-            document.getElementById('resetCodeSection').style.display = 'none';
-            document.getElementById('forgotActionBtn').innerText = 'إرسال الرمز';
-            document.getElementById('forgotActionBtn').onclick = sendResetCode;
-        }
-
-        async function sendResetCode() {
-            const email = document.getElementById('forgotEmail').value.trim();
-            const errorEl = document.getElementById('forgotError');
-            if (!email) {
-                errorEl.innerText = 'يرجى إدخال البريد الإلكتروني';
-                return;
-            }
-            try {
-                const res = await fetch(`${SERVER_URL}/forgot-password`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    document.getElementById('resetCodeSection').style.display = 'block';
-                    document.getElementById('forgotActionBtn').innerText = 'تأكيد الرمز';
-                    document.getElementById('forgotActionBtn').onclick = () => verifyResetCode(email);
-                    errorEl.innerText = '';
-                } else {
-                    errorEl.innerText = data.message;
-                }
-            } catch (err) {
-                errorEl.innerText = 'خطأ في الاتصال بالسيرفر';
-            }
-        }
-
-        async function verifyResetCode(email) {
-            const inputs = document.querySelectorAll('#forgotPasswordModal .code-input');
-            let code = '';
-            inputs.forEach(input => code += input.value);
-            const newPassword = document.getElementById('newPassword').value;
-            const errorEl = document.getElementById('forgotError');
-
-            if (code.length !== 4) {
-                errorEl.innerText = 'أدخل الرمز المكون من 4 أرقام';
-                return;
-            }
-            if (!newPassword) {
-                errorEl.innerText = 'أدخل كلمة المرور الجديدة';
-                return;
-            }
-
-            try {
-                const res = await fetch(`${SERVER_URL}/reset-password`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, code, newPassword })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    alert('تم تغيير كلمة المرور بنجاح');
-                    document.getElementById('forgotPasswordModal').style.display = 'none';
-                } else {
-                    errorEl.innerText = data.message;
-                }
-            } catch (err) {
-                errorEl.innerText = 'خطأ في الاتصال بالسيرفر';
-            }
-        }
-
-        // تسجيل الدخول
-        async function login() {
+        window.login = async () => {
             const email = document.getElementById('loginEmail')?.value;
             const password = document.getElementById('loginPassword')?.value;
-            const errorEl = document.getElementById('authError');
-
+            
             if (!email || !password) {
-                errorEl.innerText = 'يرجى إدخال البريد وكلمة المرور';
-                return;
+                return showAuthError('أدخل البريد وكلمة المرور');
             }
 
             try {
-                const response = await fetch(`${SERVER_URL}/login`, {
+                const res = await fetch(`${SERVER_URL}/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
-                const data = await response.json();
+                const data = await res.json();
+                
                 if (data.success) {
-                    myName = data.username;
-                    myEmail = email;
-                    myUserId = data.userId;
-                    await initializeApp(data.avatar || '');
+                    currentUser = {
+                        id: data.userId,
+                        name: data.username,
+                        email: email,
+                        avatar: data.avatar,
+                        bio: data.bio
+                    };
+                    showAuthSuccess();
                 } else {
-                    errorEl.innerText = data.message || 'بريد أو كلمة مرور غير صحيحة';
+                    showAuthError(data.message);
                 }
             } catch (err) {
-                errorEl.innerText = 'خطأ في الاتصال بالسيرفر';
+                showAuthError('خطأ في الاتصال');
             }
+        };
+
+        function showAuthError(msg) {
+            document.getElementById('authError').innerText = msg;
         }
 
-        // التحقق من صحة البريد
-        function validateEmail(email) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        }
-
-        // ==================== تهيئة التطبيق بعد تسجيل الدخول ====================
-        async function initializeApp(avatarUrl = '') {
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
-                        frameRate: { ideal: 30 }
-                    }, 
-                    audio: true 
-                });
-                
-                document.getElementById('localVideo').srcObject = localStream;
-                document.getElementById('userAvatar').src = avatarUrl || 'https://via.placeholder.com/50';
-                document.getElementById('myNameLabel').innerText = myName;
-                
-                connectToServer();
-                
-                document.getElementById('setupScreen').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('setupScreen').style.display = 'none';
-                    document.getElementById('mainApp').style.display = 'flex';
-                }, 300);
-                
-                setupControls();
-                getVideoDevices();
-                initFilters();
-                
-            } catch (err) {
-                console.error(err);
-                alert('تعذر الوصول إلى الكاميرا أو الميكروفون. يرجى التحقق من الصلاحيات.');
-            }
+        function showAuthSuccess() {
+            showToast(`مرحباً ${currentUser.name}`, 'success');
+            authScreen.style.display = 'none';
+            mainApp.style.display = 'block';
+            document.getElementById('headerName').innerText = currentUser.name;
+            document.getElementById('headerAvatar').src = currentUser.avatar || 'https://via.placeholder.com/48';
+            connectSocket();
+            loadInitialData();
         }
 
         // ==================== الاتصال بالسيرفر ====================
-        function connectToServer() {
-            socket = io(SERVER_URL, {
-                reconnection: true,
-                reconnectionAttempts: 5,
-                reconnectionDelay: 1000,
-                query: { username: myName, email: myEmail }
+        function connectSocket() {
+            socket = io(SERVER_URL);
+            
+            socket.on('connect', () => {
+                socket.emit('register', { name: currentUser.name, email: currentUser.email });
+                updateConnectionStatus(true);
             });
 
-            socket.on('connect', () => {
-                console.log('متصل بالسيرفر');
-                updateStatus('متصل بالسيرفر', true);
-                socket.emit('register', { name: myName, email: myEmail });
+            socket.on('disconnect', () => {
+                updateConnectionStatus(false);
             });
 
             socket.on('users-updated', (users) => {
-                connectedUsers = users.filter(u => u.id !== socket.id);
-                updateOnlineUsersCount();
-                updateUsersGrid();
-                updateSearchResults();
+                onlineUsers.clear();
+                users.forEach(u => onlineUsers.set(u.userId, u));
+            });
+
+            socket.on('follow-notification', (data) => {
+                addNotification(`📢 ${data.followerName || 'مستخدم'} بدأ متابعتك`);
+            });
+
+            socket.on('new-story', (story) => {
+                addNotification(`قصة جديدة من ${story.userName}`);
+                loadStories();
+            });
+
+            socket.on('story-interaction', (data) => {
+                const action = data.type === 'like' ? 'أعجب' : 'علق';
+                addNotification(`🔔 ${data.userName} ${action} على قصتك`);
             });
 
             socket.on('avatar-updated', (data) => {
-                if (data.email === myEmail) {
-                    document.getElementById('userAvatar').src = data.avatar || 'https://via.placeholder.com/50';
+                if (data.email === currentUser.email) {
+                    document.getElementById('headerAvatar').src = data.avatar;
+                    currentUser.avatar = data.avatar;
                 }
-                updateUsersGrid(); // تحديث الصور في القائمة
-            });
-
-            socket.on('incoming-call', (data) => {
-                incomingCallData = data;
-                showIncomingCallModal(data);
-            });
-
-            socket.on('call-accepted', async (data) => {
-                await handleCallAccepted(data);
-            });
-
-            socket.on('call-rejected', (data) => {
-                alert(`تم رفض المكالمة من قبل ${data.from}`);
-                resetCallState();
-            });
-
-            socket.on('call-ended', (data) => {
-                if (isCallActive) {
-                    alert(`أنهى ${data.from} المكالمة`);
-                    endCall();
-                }
-            });
-
-            socket.on('offer', async (data) => {
-                await handleOffer(data);
-            });
-
-            socket.on('answer', async (data) => {
-                await handleAnswer(data);
-            });
-
-            socket.on('ice-candidate', (data) => {
-                handleIceCandidate(data);
-            });
-
-            socket.on('random-call-matched', async (data) => {
-                isWaitingRandom = false;
-                document.getElementById('randomCallBtn').classList.remove('flip');
-                document.getElementById('randomCallBtn').innerHTML = '<i class="fas fa-random"></i><span>اتصال عشوائي</span>';
-                document.getElementById('remoteVideoContainer').classList.add('flip-animation');
-                setTimeout(() => {
-                    document.getElementById('remoteVideoContainer').classList.remove('flip-animation');
-                }, 600);
-                
-                currentCall = data.partnerId;
-                callType = data.type || 'video';
-                await createPeerConnection(data.partnerId);
-                
-                const offer = await peerConnection.createOffer();
-                await peerConnection.setLocalDescription(offer);
-                
-                socket.emit('call', {
-                    to: data.partnerId,
-                    from: myName,
-                    type: callType,
-                    offer: offer
-                });
-                
-                updateCallUI(true, `جاري الاتصال العشوائي...`, callType);
-                document.getElementById('endCallBtn').style.display = 'flex';
-            });
-
-            socket.on('random-call-cancelled', () => {
-                isWaitingRandom = false;
-                document.getElementById('randomCallBtn').classList.remove('flip');
-                document.getElementById('randomCallBtn').innerHTML = '<i class="fas fa-random"></i><span>اتصال عشوائي</span>';
-                alert('لم يتم العثور على مستخدم. حاول مرة أخرى.');
             });
         }
 
-        // ==================== تحديث قائمة المستخدمين ====================
-        function updateUsersGrid() {
-            const grid = document.getElementById('onlineUsersGrid');
-            const count = document.getElementById('onlineCount');
-            count.innerText = connectedUsers.length + 1;
-            
-            if (connectedUsers.length === 0) {
-                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 20px;">لا يوجد مستخدمون آخرون متصلون</div>';
+        function updateConnectionStatus(connected) {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.innerText = connected ? 'متصل' : 'غير متصل';
+            statusEl.style.color = connected ? 'var(--success)' : 'var(--danger)';
+        }
+
+        // ==================== تحميل البيانات الأولية ====================
+        async function loadInitialData() {
+            await Promise.all([
+                loadUserStats(),
+                loadFollowing(),
+                loadSuggestions(),
+                loadStories(),
+                loadChats()
+            ]);
+        }
+
+        async function loadUserStats() {
+            try {
+                const res = await fetch(`${SERVER_URL}/followers/${currentUser.id}`);
+                const data = await res.json();
+                document.getElementById('followersCount').innerText = data.followers?.length || 0;
+            } catch (err) {}
+        }
+
+        async function loadFollowing() {
+            try {
+                const res = await fetch(`${SERVER_URL}/following/${currentUser.id}`);
+                const data = await res.json();
+                if (data.success) {
+                    following = new Set(data.following.map(f => f.userId));
+                }
+            } catch (err) {}
+        }
+
+        async function loadSuggestions() {
+            try {
+                const res = await fetch(`${SERVER_URL}/suggestions/${currentUser.id}`);
+                const data = await res.json();
+                if (data.success) {
+                    suggestions = data.suggestions;
+                    renderSuggestions();
+                }
+            } catch (err) {}
+        }
+
+        async function loadStories() {
+            try {
+                const res = await fetch(`${SERVER_URL}/stories/${currentUser.id}`);
+                const data = await res.json();
+                if (data.success) {
+                    stories = data.stories;
+                    renderStories();
+                }
+            } catch (err) {}
+        }
+
+        async function loadChats() {
+            try {
+                const res = await fetch(`${SERVER_URL}/chats/${currentUser.id}`);
+                const data = await res.json();
+                if (data.success) {
+                    chats = data.chats;
+                    renderChats();
+                }
+            } catch (err) {}
+        }
+
+        // ==================== عرض البيانات ====================
+        function renderSuggestions() {
+            const list = document.getElementById('suggestionsList');
+            if (!suggestions.length) {
+                list.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>لا توجد اقتراحات</p></div>';
                 return;
             }
+            list.innerHTML = suggestions.map(s => `
+                <div class="suggestion-item">
+                    <img src="${s.avatar || 'https://via.placeholder.com/50'}" class="suggestion-avatar">
+                    <div class="suggestion-info">
+                        <div class="suggestion-name">${s.username}</div>
+                        <div class="suggestion-bio">${s.bio || ''}</div>
+                    </div>
+                    <button class="follow-btn ${following.has(s.userId) ? 'following' : ''}" onclick="toggleFollow('${s.userId}')">
+                        ${following.has(s.userId) ? 'متابع' : 'متابعة'}
+                    </button>
+                </div>
+            `).join('');
+        }
 
-            let html = '';
-            connectedUsers.forEach(user => {
-                const statusClass = user.inCall ? 'in-call' : 'online';
-                const statusText = user.inCall ? 'في مكالمة' : 'متصل';
-                const avatar = user.avatar || 'https://via.placeholder.com/50';
+        function renderStories() {
+            const container = document.getElementById('storiesList');
+            let html = '<div class="story-item" onclick="showAddStory()"><div class="story-avatar add"><i class="fas fa-plus"></i></div><span class="story-name">إضافة</span></div>';
+            
+            stories.forEach(s => {
                 html += `
-                    <div class="user-card" onclick="selectUser('${user.name}')">
-                        <img class="user-card-avatar" src="${avatar}" alt="صورة">
-                        <div class="user-card-info">
-                            <div class="user-card-name">${user.name}</div>
-                            <div class="user-card-status ${statusClass}">${statusText}</div>
-                        </div>
+                    <div class="story-item" onclick="viewStory('${s.id}')">
+                        <img class="story-avatar" src="${s.userAvatar || 'https://via.placeholder.com/68'}">
+                        <span class="story-name">${s.userName}</span>
                     </div>
                 `;
             });
-            grid.innerHTML = html;
+            container.innerHTML = html;
         }
 
-        window.selectUser = (name) => {
-            document.getElementById('targetNameInput').value = name;
-            document.getElementById('searchResults').classList.remove('active');
-        };
-
-        // ==================== الاتصال العشوائي ====================
-        function requestRandomCall() {
-            if (isWaitingRandom) {
-                socket.emit('cancel-random-call');
-                isWaitingRandom = false;
-                document.getElementById('randomCallBtn').classList.remove('flip');
-                document.getElementById('randomCallBtn').innerHTML = '<i class="fas fa-random"></i><span>اتصال عشوائي</span>';
-            } else {
-                socket.emit('request-random-call', { 
-                    userId: socket.id, 
-                    name: myName 
-                });
-                isWaitingRandom = true;
-                document.getElementById('randomCallBtn').classList.add('flip');
-                document.getElementById('randomCallBtn').innerHTML = '<i class="fas fa-times"></i><span>إلغاء الانتظار</span>';
-                updateStatus('جاري البحث عن مستخدم عشوائي...', true);
-            }
-        }
-
-        // ==================== تبديل الكاميرا الأمامية/الخلفية ====================
-        async function getVideoDevices() {
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            videoDevices = devices.filter(device => device.kind === 'videoinput');
-            if (videoDevices.length > 0) {
-                currentDeviceId = localStream.getVideoTracks()[0]?.getSettings().deviceId;
-            }
-        }
-
-        async function flipCamera() {
-            if (videoDevices.length < 2) {
-                alert('لا توجد كاميرا خلفية متاحة');
+        function renderChats() {
+            const list = document.getElementById('chatsList');
+            if (!chats.length) {
+                list.innerHTML = '<div class="empty-state"><i class="fas fa-comments"></i><p>لا توجد محادثات</p></div>';
                 return;
             }
-            
-            const currentIndex = videoDevices.findIndex(d => d.deviceId === currentDeviceId);
-            const nextIndex = (currentIndex + 1) % videoDevices.length;
-            const newDeviceId = videoDevices[nextIndex].deviceId;
+            list.innerHTML = chats.map(c => {
+                const user = onlineUsers.get(c.userId);
+                return `
+                    <div class="chat-item" onclick="openChat('${c.userId}','${c.userName}','${c.userAvatar}')">
+                        <img src="${c.userAvatar || 'https://via.placeholder.com/56'}" class="chat-avatar">
+                        <div class="chat-info">
+                            <div class="chat-name">
+                                ${c.userName}
+                                ${user?.online ? '<span class="online-dot" style="width: 8px; height: 8px;"></span>' : '<span class="offline-dot" style="width: 8px; height: 8px;"></span>'}
+                            </div>
+                            <div class="chat-last">${c.lastMessage?.content || 'ابدأ المحادثة'}</div>
+                        </div>
+                        ${c.unreadCount ? `<span class="unread-badge">${c.unreadCount}</span>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ==================== دوال المتابعة ====================
+        window.toggleFollow = async (targetId) => {
+            const isFollowing = following.has(targetId);
+            const endpoint = isFollowing ? '/unfollow' : '/follow';
             
             try {
-                const newStream = await navigator.mediaDevices.getUserMedia({
-                    video: { 
-                        deviceId: { exact: newDeviceId },
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
-                        frameRate: { ideal: 30 }
-                    },
-                    audio: true
+                const res = await fetch(`${SERVER_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentUser.id, targetId })
                 });
+                const data = await res.json();
                 
-                const videoTrack = newStream.getVideoTracks()[0];
-                const audioTrack = newStream.getAudioTracks()[0];
-                
-                const sender = peerConnection?.getSenders().find(s => s.track?.kind === 'video');
-                if (sender) await sender.replaceTrack(videoTrack);
-                
-                localStream.removeTrack(localStream.getVideoTracks()[0]);
-                localStream.addTrack(videoTrack);
-                
-                document.getElementById('localVideo').srcObject = localStream;
-                currentDeviceId = newDeviceId;
-                
-                localStream.getVideoTracks().forEach(t => {
-                    if (t.id !== videoTrack.id) t.stop();
-                });
-                
+                if (data.success) {
+                    if (isFollowing) {
+                        following.delete(targetId);
+                    } else {
+                        following.add(targetId);
+                    }
+                    renderSuggestions();
+                    showToast(isFollowing ? 'تم إلغاء المتابعة' : 'تمت المتابعة', 'success');
+                }
             } catch (err) {
-                console.error('فشل تبديل الكاميرا:', err);
+                showToast('حدث خطأ', 'error');
             }
-        }
+        };
 
-        // ==================== الفلاتر التجميلية ====================
-        function initFilters() {
-            const filterBtns = document.querySelectorAll('.filter-btn');
-            filterBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    filterBtns.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    const filter = this.dataset.filter;
-                    document.getElementById('localVideo').style.filter = filter === 'none' ? 'none' : filter;
+        // ==================== دوال الملف الشخصي ====================
+        window.loadProfile = () => {
+            document.getElementById('profileUsername').innerText = currentUser.name;
+            document.getElementById('profileAvatar').src = currentUser.avatar || 'https://via.placeholder.com/100';
+            document.getElementById('profileBio').innerText = currentUser.bio || 'لا توجد سيرة ذاتية';
+            document.getElementById('editName').value = currentUser.name;
+            document.getElementById('editUsername').value = currentUser.name;
+            document.getElementById('editBio').value = currentUser.bio || '';
+        };
+
+        window.updateProfile = async () => {
+            const name = document.getElementById('editName').value;
+            const username = document.getElementById('editUsername').value;
+            const bio = document.getElementById('editBio').value;
+            const pass = document.getElementById('editPassword').value;
+
+            try {
+                const res = await fetch(`${SERVER_URL}/update-profile`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: currentUser.email,
+                        username: name,
+                        bio: bio,
+                        password: pass || undefined
+                    })
                 });
-            });
-        }
+                const data = await res.json();
+                
+                if (data.success) {
+                    currentUser.name = name;
+                    currentUser.bio = bio;
+                    document.getElementById('headerName').innerText = name;
+                    showToast('تم التحديث بنجاح', 'success');
+                }
+            } catch (err) {
+                showToast('فشل التحديث', 'error');
+            }
+        };
 
-        // ==================== رفع الصورة الشخصية ====================
-        document.getElementById('uploadAvatarBtn').addEventListener('click', function() {
-            document.getElementById('avatarUploadInput').click();
+        // ==================== رفع الصورة ====================
+        document.getElementById('uploadAvatarBtn').addEventListener('click', () => {
+            document.getElementById('avatarInput').click();
         });
 
-        document.getElementById('avatarUploadInput').addEventListener('change', async function(e) {
+        document.getElementById('avatarInput').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = async (event) => {
-                const avatarData = event.target.result;
+            reader.onload = async (ev) => {
                 try {
                     const res = await fetch(`${SERVER_URL}/update-avatar`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: myEmail, avatar: avatarData })
+                        body: JSON.stringify({ email: currentUser.email, avatar: ev.target.result })
                     });
                     const data = await res.json();
+                    
                     if (data.success) {
-                        document.getElementById('userAvatar').src = avatarData;
-                    } else {
-                        alert('فشل تحديث الصورة');
+                        document.getElementById('headerAvatar').src = ev.target.result;
+                        currentUser.avatar = ev.target.result;
+                        showToast('تم تحديث الصورة', 'success');
                     }
                 } catch (err) {
-                    alert('خطأ في الاتصال بالسيرفر');
+                    showToast('فشل التحديث', 'error');
                 }
             };
             reader.readAsDataURL(file);
         });
 
-        // ==================== دوال WebRTC ====================
-        async function createPeerConnection(targetId) {
-            if (peerConnection) peerConnection.close();
-            
-            peerConnection = new RTCPeerConnection(config);
-            
-            localStream.getTracks().forEach(track => {
-                peerConnection.addTrack(track, localStream);
-            });
-            
-            peerConnection.ontrack = (event) => {
-                document.getElementById('remoteVideo').srcObject = event.streams[0];
-            };
-            
-            peerConnection.onicecandidate = (event) => {
-                if (event.candidate && targetId) {
-                    socket.emit('ice-candidate', { to: targetId, candidate: event.candidate });
-                }
-            };
-            
-            peerConnection.onconnectionstatechange = () => {
-                if (peerConnection.connectionState === 'connected') {
-                    isCallActive = true;
-                    startCallTimer();
-                    updateCallUI(true, `متصل`, callType);
-                } else if (['disconnected', 'failed', 'closed'].includes(peerConnection.connectionState)) {
-                    if (isCallActive) endCall();
-                }
-            };
+        // ==================== الإشعارات ====================
+        function addNotification(text, avatar) {
+            notifications.unshift({ text, avatar, time: Date.now() });
+            document.getElementById('notificationsBtn').classList.add('has-notification');
+            renderNotifications();
         }
 
-        async function callUser(type) {
-            const targetName = document.getElementById('targetNameInput').value.trim();
-            if (!targetName) return alert('يرجى اختيار مستخدم');
-            if (targetName === myName) return alert('لا يمكن الاتصال بنفسك');
-            if (isCallActive) return alert('أنت في مكالمة حالياً');
-            
-            const targetUser = connectedUsers.find(u => u.name === targetName);
-            if (!targetUser) return alert('المستخدم غير متصل');
-            
-            currentCall = targetUser.id;
-            callType = type;
-            
-            await createPeerConnection(targetUser.id);
-            
-            const offer = await peerConnection.createOffer();
-            await peerConnection.setLocalDescription(offer);
-            
-            socket.emit('call', { to: targetUser.id, from: myName, type, offer });
-            
-            updateCallUI(true, `جاري الاتصال بـ ${targetName}...`, type);
-            document.getElementById('endCallBtn').style.display = 'flex';
+        function renderNotifications() {
+            const panel = document.getElementById('notificationsPanel');
+            panel.innerHTML = notifications.map(n => `
+                <div class="notification-item">
+                    <img src="${n.avatar || 'https://via.placeholder.com/44'}" class="notification-avatar">
+                    <div>${n.text}</div>
+                </div>
+            `).join('');
         }
 
-        async function handleOffer(data) {
-            if (isCallActive) {
-                socket.emit('reject-call', { to: data.fromId, reason: 'مشغول' });
+        document.getElementById('notificationsBtn').addEventListener('click', () => {
+            const panel = document.getElementById('notificationsPanel');
+            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+            document.getElementById('notificationsBtn').classList.remove('has-notification');
+        });
+
+        // ==================== البحث ====================
+        document.getElementById('searchInput').addEventListener('input', async (e) => {
+            const term = e.target.value.trim();
+            if (term.length < 2) {
+                document.getElementById('searchResults').style.display = 'none';
                 return;
             }
-            incomingCallData = { ...data, fromId: data.fromId };
-            showIncomingCallModal(data);
+
+            try {
+                const res = await fetch(`${SERVER_URL}/search-users?q=${term}`);
+                const data = await res.json();
+                
+                if (data.success && data.users.length) {
+                    document.getElementById('searchResults').innerHTML = data.users.map(u => `
+                        <div class="search-item" onclick="selectUser('${u.userId}','${u.username}','${u.avatar}')">
+                            <img src="${u.avatar || 'https://via.placeholder.com/40'}" class="search-avatar">
+                            <div>
+                                <div style="font-weight: 600;">${u.username}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${u.bio || ''}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                    document.getElementById('searchResults').style.display = 'block';
+                }
+            } catch (err) {}
+        });
+
+        window.selectUser = (userId, name, avatar) => {
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('searchInput').value = name;
+            // هنا يمكن فتح صفحة المستخدم أو بدء محادثة
+        };
+
+        // ==================== الإعدادات ====================
+        const themeSwitch = document.getElementById('themeSwitch');
+        themeSwitch.addEventListener('click', () => {
+            themeSwitch.classList.toggle('active');
+            document.body.classList.toggle('light-mode');
+        });
+
+        document.getElementById('fontSize').addEventListener('input', (e) => {
+            document.body.style.fontSize = e.target.value + 'px';
+        });
+
+        document.getElementById('fontFamily').addEventListener('change', (e) => {
+            document.body.style.fontFamily = e.target.value;
+        });
+
+        // ==================== التنبيهات ====================
+        function showToast(msg, type = 'info') {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                background: var(--card);
+                color: var(--text);
+                padding: 14px 20px;
+                border-radius: 30px;
+                border-right: 4px solid ${type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--danger)' : 'var(--primary)'};
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                margin-bottom: 8px;
+                animation: slideIn 0.3s;
+                font-size: 14px;
+                max-width: 300px;
+                margin-left: auto;
+                margin-right: auto;
+            `;
+            toast.innerText = msg;
+            document.getElementById('toastContainer').appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
         }
 
-        async function acceptCall() {
-            if (!incomingCallData) return;
-            document.getElementById('incomingCallModal').style.display = 'none';
+        // ==================== تسجيل الخروج ====================
+        window.logout = () => {
+            if (socket) socket.disconnect();
+            mainApp.style.display = 'none';
+            authScreen.style.display = 'flex';
+            showLoginTab();
+        };
+
+        // ==================== ستضاف الدوال التالية في الرد الثاني ====================
+        window.showAddStory = () => {};
+        window.viewStory = (id) => {};
+        window.openChat = (id, name, avatar) => {};
+    </script>
+<!-- 
+    =====================================================
+    هذا هو الرد الثاني من واجهة رون
+    أضف هذا الجزء بعد الرد الأول وقبل إغلاق </body>
+    =====================================================
+-->
+
+<!-- ====== صفحة الدردشة الكاملة ====== -->
+<div class="screen" id="chatScreen">
+    <div class="chat-container" style="display: flex; flex-direction: column; height: 100vh; background: var(--bg);">
+        <!-- رأس الدردشة -->
+        <div class="chat-header" style="background: var(--card); padding: 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px;">
+            <button class="btn-icon" onclick="closeChat()" style="width: 40px; height: 40px;"><i class="fas fa-arrow-right"></i></button>
+            <img src="" id="chatAvatar" class="user-avatar" style="width: 45px; height: 45px;">
+            <div style="flex: 1;">
+                <div class="chat-name" id="chatName" style="font-weight: 600;"></div>
+                <div class="chat-status" id="chatStatus" style="font-size: 13px; color: var(--text-secondary);"></div>
+            </div>
+            <button class="btn-icon" onclick="startAudioCall()" style="width: 40px; height: 40px;"><i class="fas fa-phone"></i></button>
+            <button class="btn-icon" onclick="startVideoCall()" style="width: 40px; height: 40px;"><i class="fas fa-video"></i></button>
+        </div>
+
+        <!-- منطقة الرسائل -->
+        <div class="messages-area" id="messagesArea" style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px;"></div>
+
+        <!-- فقاعة الكتابة (تظهر عند كتابة الطرف الآخر) -->
+        <div class="typing-bubble" id="typingBubble" style="display: none; align-items: center; gap: 5px; padding: 8px 16px; background: var(--card); border-radius: 30px; width: fit-content; margin: 0 20px 10px;">
+            <span style="width: 6px; height: 6px; background: var(--text-secondary); border-radius: 50%; animation: typingDot 1.4s infinite;"></span>
+            <span style="width: 6px; height: 6px; background: var(--text-secondary); border-radius: 50%; animation: typingDot 1.4s infinite; animation-delay: 0.2s;"></span>
+            <span style="width: 6px; height: 6px; background: var(--text-secondary); border-radius: 50%; animation: typingDot 1.4s infinite; animation-delay: 0.4s;"></span>
+        </div>
+
+        <!-- منطقة الإدخال -->
+        <div class="chat-input-area" style="background: var(--card); padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; position: relative;">
+            <button class="btn-icon" id="chatAttachBtn" style="width: 45px; height: 45px;"><i class="fas fa-paperclip"></i></button>
             
-            currentCall = incomingCallData.fromId;
-            callType = incomingCallData.type;
+            <!-- خيارات الإرفاق -->
+            <div class="attach-options" id="attachOptions" style="position: absolute; bottom: 70px; left: 20px; background: var(--card); border-radius: 20px; padding: 12px; display: none; flex-direction: column; gap: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); z-index: 100;">
+                <button onclick="sendMedia('image')" style="background: none; border: none; color: var(--text); padding: 12px 20px; display: flex; align-items: center; gap: 12px; width: 100%; border-radius: 12px; cursor: pointer;">
+                    <i class="fas fa-image"></i> صورة
+                </button>
+                <button onclick="sendMedia('video')" style="background: none; border: none; color: var(--text); padding: 12px 20px; display: flex; align-items: center; gap: 12px; width: 100%; border-radius: 12px; cursor: pointer;">
+                    <i class="fas fa-video"></i> فيديو
+                </button>
+                <button onclick="sendMedia('file')" style="background: none; border: none; color: var(--text); padding: 12px 20px; display: flex; align-items: center; gap: 12px; width: 100%; border-radius: 12px; cursor: pointer;">
+                    <i class="fas fa-file"></i> ملف
+                </button>
+            </div>
+
+            <input type="text" class="chat-input" id="chatInput" placeholder="اكتب رسالة..." style="flex: 1; padding: 14px 18px; border-radius: 30px; border: 1px solid var(--border); background: var(--bg); color: var(--text); outline: none;">
+
+            <button class="record-btn" id="recordBtn" style="width: 45px; height: 45px; border-radius: 50%; background: var(--danger); color: white; border: none; display: flex; align-items: center; justify-content: center; position: relative;">
+                <i class="fas fa-microphone"></i>
+            </button>
+
+            <button class="send-btn" id="sendBtn" style="width: 45px; height: 45px; border-radius: 50%; background: var(--primary); color: white; border: none; display: none; align-items: center; justify-content: center;">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ====== صفحة القصص المتكاملة ====== -->
+<div class="screen" id="storyViewerScreen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 10000; display: none; overflow-y: auto;">
+    <!-- رأس القصة -->
+    <div style="position: sticky; top: 0; background: rgba(0,0,0,0.9); padding: 15px; display: flex; align-items: center; gap: 15px; backdrop-filter: blur(10px); z-index: 10;">
+        <button class="btn-icon" onclick="closeStoryViewer()" style="background: rgba(255,255,255,0.2); color: white;"><i class="fas fa-arrow-right"></i></button>
+        <img src="" id="storyUserAvatar" class="user-avatar" style="width: 45px; height: 45px;">
+        <div style="flex: 1;">
+            <div id="storyUserName" style="font-weight: 600; color: white;"></div>
+            <div id="storyTime" style="font-size: 12px; color: rgba(255,255,255,0.6);"></div>
+        </div>
+        <button class="btn-icon" onclick="showStoryMenu()" style="background: rgba(255,255,255,0.2); color: white;"><i class="fas fa-ellipsis-h"></i></button>
+    </div>
+
+    <!-- محتوى القصة -->
+    <div style="display: flex; flex-direction: column; align-items: center; padding: 20px;">
+        <img src="" id="storyImage" style="max-width: 100%; max-height: 60vh; border-radius: 20px; display: none;">
+        <video src="" id="storyVideo" style="max-width: 100%; max-height: 60vh; border-radius: 20px; display: none;" controls></video>
+        <div id="storyText" style="color: white; font-size: 24px; text-align: center; padding: 30px; background: rgba(255,255,255,0.1); border-radius: 20px; width: 100%; display: none;"></div>
+    </div>
+
+    <!-- إحصائيات القصة -->
+    <div style="display: flex; justify-content: space-around; padding: 20px; background: rgba(0,0,0,0.8); margin: 20px; border-radius: 30px;">
+        <div style="text-align: center;">
+            <i class="fas fa-eye" style="color: var(--primary); font-size: 20px;"></i>
+            <div id="storyViewsCount" style="color: white; font-weight: bold;">0</div>
+        </div>
+        <div style="text-align: center;">
+            <i class="fas fa-heart" style="color: #f472b6; font-size: 20px;"></i>
+            <div id="storyLikesCount" style="color: white; font-weight: bold;">0</div>
+        </div>
+        <div style="text-align: center;">
+            <i class="fas fa-comment" style="color: var(--success); font-size: 20px;"></i>
+            <div id="storyCommentsCount" style="color: white; font-weight: bold;">0</div>
+        </div>
+    </div>
+
+    <!-- قائمة المشاهدين -->
+    <div id="viewersList" style="padding: 20px; background: rgba(0,0,0,0.8); margin: 20px; border-radius: 30px; display: none;">
+        <h4 style="color: white; margin-bottom: 15px;">المشاهدين</h4>
+        <div id="viewersContainer"></div>
+    </div>
+
+    <!-- أزرار التفاعل -->
+    <div style="display: flex; gap: 15px; padding: 20px; background: rgba(0,0,0,0.8); margin: 20px; border-radius: 30px;">
+        <button class="btn-icon" id="storyLikeBtn" onclick="likeStory()" style="background: rgba(255,255,255,0.2); color: white; width: 50px; height: 50px;">
+            <i class="fas fa-heart"></i>
+        </button>
+        <button class="btn-icon" onclick="toggleViewersList()" style="background: rgba(255,255,255,0.2); color: white; width: 50px; height: 50px;">
+            <i class="fas fa-eye"></i>
+        </button>
+        <input type="text" id="storyCommentInput" placeholder="أضف تعليقاً..." style="flex: 1; padding: 15px; border-radius: 30px; border: none; background: rgba(255,255,255,0.2); color: white; outline: none;">
+        <button class="btn-icon" onclick="sendStoryComment()" style="background: var(--primary); color: white; width: 50px; height: 50px;">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+
+    <!-- التعليقات -->
+    <div id="commentsList" style="padding: 20px; background: rgba(0,0,0,0.8); margin: 20px; border-radius: 30px;"></div>
+</div>
+
+<!-- ====== نافذة خيارات القصة ====== -->
+<div class="context-menu" id="storyMenu" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); border-radius: 30px; padding: 20px; width: 250px; display: none; z-index: 11000;">
+    <button onclick="deleteStory()" style="background: none; border: none; color: var(--danger); padding: 15px; width: 100%; display: flex; align-items: center; gap: 10px; justify-content: center;">
+        <i class="fas fa-trash"></i> حذف القصة
+    </button>
+    <hr style="border-color: var(--border); margin: 10px 0;">
+    <button onclick="closeStoryMenu()" style="background: none; border: none; color: var(--text); padding: 15px; width: 100%;">إلغاء</button>
+</div>
+
+<!-- ====== نافذة إضافة قصة ====== -->
+<div class="context-menu" id="addStoryMenu" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); border-radius: 30px; padding: 20px; width: 280px; display: none; z-index: 11000;">
+    <h3 style="text-align: center; margin-bottom: 20px;">إضافة قصة</h3>
+    <button onclick="addTextStory()" style="background: none; border: none; color: var(--text); padding: 15px; width: 100%; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border);">
+        <i class="fas fa-font"></i> نص
+    </button>
+    <button onclick="addImageStory()" style="background: none; border: none; color: var(--text); padding: 15px; width: 100%; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border);">
+        <i class="fas fa-image"></i> صورة
+    </button>
+    <button onclick="addVideoStory()" style="background: none; border: none; color: var(--text); padding: 15px; width: 100%; display: flex; align-items: center; gap: 15px;">
+        <i class="fas fa-video"></i> فيديو
+    </button>
+    <hr style="border-color: var(--border); margin: 15px 0;">
+    <button onclick="closeAddStory()" style="background: none; border: none; color: var(--text-secondary); padding: 10px; width: 100%;">إلغاء</button>
+</div>
+
+<!-- ====== نافذة المكالمة الواردة ====== -->
+<div class="call-modal" id="incomingCallModal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.98); display: none; align-items: center; justify-content: center; z-index: 12000; backdrop-filter: blur(15px);">
+    <div style="background: var(--card); padding: 40px 30px; border-radius: 60px; text-align: center; max-width: 400px; width: 90%;">
+        <div style="width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 20px; background: linear-gradient(135deg, var(--primary), #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 48px; color: white; font-weight: bold; border: 4px solid var(--primary);" id="callerAvatar">
+            ?
+        </div>
+        <h2 style="font-size: 28px; margin-bottom: 10px;" id="callerName"></h2>
+        <p style="color: var(--text-secondary); font-size: 18px; margin-bottom: 30px;" id="callType"></p>
+        
+        <!-- مؤشر الرنين المتحرك -->
+        <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 30px;">
+            <div style="width: 12px; height: 12px; background: var(--primary); border-radius: 50%; animation: ringWave 1s infinite;"></div>
+            <div style="width: 12px; height: 12px; background: var(--primary); border-radius: 50%; animation: ringWave 1s infinite; animation-delay: 0.2s;"></div>
+            <div style="width: 12px; height: 12px; background: var(--primary); border-radius: 50%; animation: ringWave 1s infinite; animation-delay: 0.4s;"></div>
+        </div>
+
+        <div style="display: flex; gap: 30px; justify-content: center;">
+            <button class="call-btn" onclick="rejectCall()" style="width: 70px; height: 70px; border-radius: 50%; border: none; background: var(--danger); color: white; font-size: 28px; cursor: pointer;">
+                <i class="fas fa-times"></i>
+            </button>
+            <button class="call-btn" onclick="acceptCall()" style="width: 70px; height: 70px; border-radius: 50%; border: none; background: var(--success); color: white; font-size: 28px; cursor: pointer;">
+                <i class="fas fa-phone-alt"></i>
+            </button>
+        </div>
+        <button class="auth-link" onclick="muteRingtone()" style="margin-top: 20px;">كتم الرنة</button>
+    </div>
+</div>
+
+<!-- ====== شاشة المكالمة النشطة (فيديو) ====== -->
+<div class="video-call" id="videoCallContainer" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000; display: none; flex-direction: column; z-index: 11000;">
+    <!-- رأس المكالمة -->
+    <div style="position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10;">
+        <div style="background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); padding: 8px 20px; border-radius: 40px; color: white;">
+            <span id="callTimer">00:00</span>
+        </div>
+        <div style="display: flex; gap: 15px;">
+            <button class="btn-icon" id="callMicBtn" style="background: rgba(0,0,0,0.5); color: white;"><i class="fas fa-microphone"></i></button>
+            <button class="btn-icon" id="callCamBtn" style="background: rgba(0,0,0,0.5); color: white;"><i class="fas fa-video"></i></button>
+            <button class="btn-icon" id="callEndBtn" style="background: var(--danger); color: white;"><i class="fas fa-phone-slash"></i></button>
+        </div>
+    </div>
+
+    <!-- فيديو الطرف البعيد -->
+    <div style="flex: 1; position: relative;">
+        <video id="remoteVideo" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+        <div style="position: absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 30px; color: white;" id="remoteName"></div>
+    </div>
+
+    <!-- فيديو المتصل (صغير) -->
+    <div style="position: absolute; bottom: 30px; left: 20px; width: 100px; height: 140px; border-radius: 20px; overflow: hidden; border: 2px solid var(--primary); background: #000;">
+        <video id="localVideo" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
+    </div>
+
+    <!-- زر تبديل الكاميرا -->
+    <button class="btn-icon" onclick="flipCamera()" style="position: absolute; bottom: 30px; right: 20px; background: rgba(0,0,0,0.5); color: white; z-index: 20;">
+        <i class="fas fa-sync-alt"></i>
+    </button>
+</div>
+
+<!-- ====== أنماط إضافية ====== -->
+<style>
+    @keyframes ringWave {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.5); opacity: 0.5; }
+    }
+
+    @keyframes typingDot {
+        0%, 60%, 100% { transform: translateY(0); }
+        30% { transform: translateY(-8px); }
+    }
+
+    @keyframes wave {
+        0%, 100% { transform: scaleY(0.3); }
+        50% { transform: scaleY(1); }
+    }
+
+    .message {
+        max-width: 70%;
+        word-wrap: break-word;
+        animation: fadeIn 0.2s;
+    }
+
+    .message.sent { align-self: flex-end; }
+    .message.received { align-self: flex-start; }
+
+    .message-text {
+        padding: 12px 16px;
+        border-radius: 20px;
+        background: var(--card);
+    }
+
+    .message.sent .message-text {
+        background: var(--primary);
+        color: white;
+        border-bottom-left-radius: 4px;
+    }
+
+    .message.received .message-text {
+        background: var(--card);
+        border-bottom-right-radius: 4px;
+    }
+
+    .message-image, .message-video {
+        max-width: 250px;
+        border-radius: 20px;
+        cursor: pointer;
+    }
+
+    .audio-message {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255,255,255,0.1);
+        padding: 12px 18px;
+        border-radius: 40px;
+        cursor: pointer;
+    }
+
+    .audio-wave {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: 24px;
+    }
+
+    .audio-wave span {
+        width: 4px;
+        height: 100%;
+        background: currentColor;
+        border-radius: 4px;
+        animation: wave 1s infinite;
+    }
+
+    .audio-wave span:nth-child(2) { animation-delay: 0.1s; }
+    .audio-wave span:nth-child(3) { animation-delay: 0.2s; }
+    .audio-wave span:nth-child(4) { animation-delay: 0.3s; }
+
+    .record-btn.recording {
+        animation: pulseRecord 1s infinite;
+    }
+
+    .record-btn.recording::after {
+        content: '';
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: 2px solid var(--danger);
+        animation: ripple 1s infinite;
+    }
+
+    @keyframes pulseRecord {
+        0% { box-shadow: 0 0 0 0 rgba(220,38,38,0.7); }
+        70% { box-shadow: 0 0 0 15px rgba(220,38,38,0); }
+    }
+
+    @keyframes ripple {
+        0% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(1.5); opacity: 0; }
+    }
+
+    .recording-indicator {
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--danger);
+        color: white;
+        padding: 8px 20px;
+        border-radius: 40px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        animation: slideDown 0.2s;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translate(-50%, -10px); }
+        to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    .uploading-indicator {
+        width: 20px;
+        height: 20px;
+        border: 3px solid var(--primary);
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .theme-switch.active div { left: 32px; }
+    .theme-switch.active { background: var(--primary); }
+
+    #storyLikeBtn.liked { color: #f472b6; animation: heartPop 0.3s; }
+    @keyframes heartPop {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.3); }
+        100% { transform: scale(1); }
+    }
+</style>
+
+<script>
+    // ==================== متغيرات الدردشة ====================
+    let currentChat = null;
+    let chatMessages = [];
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
+    let recordStartY = 0;
+    let typingTimeout = null;
+
+    // ==================== متغيرات القصص ====================
+    let currentStory = null;
+    let storyViewers = [];
+    let storyComments = [];
+
+    // ==================== متغيرات المكالمات ====================
+    let peerConnection = null;
+    let localStream = null;
+    let currentCall = null;
+    let isCallActive = false;
+    let incomingCall = null;
+    let ringtone = null;
+    let callTimer = null;
+    let callSeconds = 0;
+
+    // ==================== دوال الدردشة ====================
+    window.openChat = (userId, userName, userAvatar) => {
+        currentChat = { id: userId, name: userName, avatar: userAvatar };
+        document.querySelector('.bottom-nav').classList.add('hide');
+        document.getElementById('chatName').innerText = userName;
+        document.getElementById('chatAvatar').src = userAvatar || 'https://via.placeholder.com/45';
+        document.getElementById('chatScreen').classList.add('active');
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('chatScreen').classList.add('active');
+        loadMessages();
+    };
+
+    window.closeChat = () => {
+        document.querySelector('.bottom-nav').classList.remove('hide');
+        document.querySelector('[data-screen="home"]').click();
+    };
+
+    async function loadMessages() {
+        try {
+            const res = await fetch(`${SERVER_URL}/messages/${currentUser.id}/${currentChat.id}`);
+            const data = await res.json();
+            if (data.success) {
+                chatMessages = data.messages;
+                renderMessages();
+            }
+        } catch (err) {
+            showToast('فشل تحميل الرسائل', 'error');
+        }
+    }
+
+    function renderMessages() {
+        const area = document.getElementById('messagesArea');
+        area.innerHTML = '';
+        
+        chatMessages.forEach(msg => {
+            const div = document.createElement('div');
+            div.className = `message ${msg.from === currentUser.id ? 'sent' : 'received'}`;
+
+            if (msg.type === 'text') {
+                div.innerHTML = `<div class="message-text">${escapeHtml(msg.content)}</div>`;
+            } else if (msg.type === 'image') {
+                div.innerHTML = `<img src="${msg.content}" class="message-image" onclick="viewMedia('${msg.content}')">`;
+            } else if (msg.type === 'video') {
+                div.innerHTML = `<video src="${msg.content}" class="message-video" onclick="this.paused ? this.play() : this.pause()"></video>`;
+            } else if (msg.type === 'audio') {
+                div.innerHTML = `
+                    <div class="audio-message" onclick="playAudio(this)" data-src="${msg.content}">
+                        <i class="fas fa-play"></i>
+                        <div class="audio-wave">
+                            <span></span><span></span><span></span><span></span>
+                        </div>
+                        <span class="audio-duration">${msg.duration || '0:03'}</span>
+                    </div>
+                `;
+            }
+
+            area.appendChild(div);
+        });
+        
+        area.scrollTop = area.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ==================== التسجيل الصوتي ====================
+    const recordBtn = document.getElementById('recordBtn');
+    recordBtn.addEventListener('mousedown', startRecording);
+    recordBtn.addEventListener('touchstart', startRecording);
+    recordBtn.addEventListener('mouseup', stopRecording);
+    recordBtn.addEventListener('touchend', stopRecording);
+    recordBtn.addEventListener('mouseleave', cancelRecording);
+
+    function startRecording(e) {
+        if (!currentChat) return;
+        e.preventDefault();
+        isRecording = true;
+        recordStartY = e.clientY || (e.touches?.[0]?.clientY || 0);
+        recordBtn.classList.add('recording');
+        recordBtn.innerHTML = '<i class="fas fa-stop"></i>';
+
+        const indicator = document.createElement('div');
+        indicator.className = 'recording-indicator';
+        indicator.id = 'recordingIndicator';
+        indicator.innerHTML = '<i class="fas fa-microphone"></i> <span id="recTime">0:00</span> <i class="fas fa-arrow-up"></i> اسحب للإلغاء';
+        document.querySelector('.chat-input-area').appendChild(indicator);
+
+        let sec = 0;
+        window.recTimer = setInterval(() => {
+            sec++;
+            const m = Math.floor(sec / 60);
+            const s = sec % 60;
+            document.getElementById('recTime').innerText = `${m}:${s < 10 ? '0' + s : s}`;
+        }, 1000);
+
+        startAudioRecording();
+    }
+
+    async function startAudioRecording() {
+        audioChunks = [];
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                const reader = new FileReader();
+                reader.onload = () => {
+                    socket.emit('send-message', {
+                        to: currentChat.id,
+                        type: 'audio',
+                        content: reader.result,
+                        duration: document.getElementById('recTime')?.innerText || '0:03'
+                    });
+                };
+                reader.readAsDataURL(blob);
+                stream.getTracks().forEach(t => t.stop());
+            };
+            mediaRecorder.start();
+            socket.emit('recording', { to: currentChat.id, isRecording: true });
+        } catch (err) {
+            showToast('الميكروفون غير متاح', 'error');
+            cancelRecording();
+        }
+    }
+
+    function stopRecording(e) {
+        if (!isRecording) return;
+        const endY = e.clientY || (e.changedTouches?.[0]?.clientY || 0);
+        if (recordStartY - endY > 100) {
+            cancelRecording();
+            showToast('تم إلغاء التسجيل', 'info');
+            return;
+        }
+        finishRecording();
+    }
+
+    function cancelRecording() {
+        if (mediaRecorder?.state === 'recording') {
+            mediaRecorder.stop();
+            mediaRecorder.stream?.getTracks().forEach(t => t.stop());
+        }
+        resetRecordingUI();
+    }
+
+    function finishRecording() {
+        if (mediaRecorder?.state === 'recording') {
+            mediaRecorder.stop();
+            mediaRecorder.stream?.getTracks().forEach(t => t.stop());
+        }
+        resetRecordingUI();
+        if (currentChat) {
+            socket.emit('recording', { to: currentChat.id, isRecording: false });
+        }
+    }
+
+    function resetRecordingUI() {
+        isRecording = false;
+        recordBtn.classList.remove('recording');
+        recordBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+        document.getElementById('recordingIndicator')?.remove();
+        clearInterval(window.recTimer);
+    }
+
+    // ==================== إرسال الرسائل ====================
+    document.getElementById('chatInput').addEventListener('input', function() {
+        const record = document.getElementById('recordBtn');
+        const send = document.getElementById('sendBtn');
+        
+        if (this.value.trim()) {
+            record.style.display = 'none';
+            send.style.display = 'flex';
+            if (currentChat) {
+                socket.emit('typing', { to: currentChat.id, isTyping: true });
+                if (typingTimeout) clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    socket.emit('typing', { to: currentChat.id, isTyping: false });
+                }, 1000);
+            }
+        } else {
+            record.style.display = 'flex';
+            send.style.display = 'none';
+        }
+    });
+
+    document.getElementById('sendBtn').addEventListener('click', () => {
+        const input = document.getElementById('chatInput');
+        if (input.value.trim() && currentChat) {
+            socket.emit('send-message', {
+                to: currentChat.id,
+                type: 'text',
+                content: input.value
+            });
+            input.value = '';
+            document.getElementById('recordBtn').style.display = 'flex';
+            document.getElementById('sendBtn').style.display = 'none';
+        }
+    });
+
+    document.getElementById('chatAttachBtn').addEventListener('click', () => {
+        const opt = document.getElementById('attachOptions');
+        opt.style.display = opt.style.display === 'flex' ? 'none' : 'flex';
+    });
+
+    window.sendMedia = (type) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = type === 'image' ? 'image/*' : type === 'video' ? 'video/*' : '*/*';
+        
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
             
-            await createPeerConnection(incomingCallData.fromId);
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(incomingCallData.offer));
-            
+            reader.onloadstart = () => {
+                const temp = document.createElement('div');
+                temp.className = 'message sent';
+                temp.id = 'uploadingMsg';
+                temp.innerHTML = '<div style="display: flex; align-items: center; gap: 10px;"><div class="uploading-indicator"></div> جاري الرفع...</div>';
+                document.getElementById('messagesArea').appendChild(temp);
+            };
+
+            reader.onload = (ev) => {
+                document.getElementById('uploadingMsg')?.remove();
+                socket.emit('send-message', {
+                    to: currentChat.id,
+                    type: type,
+                    content: ev.target.result
+                });
+            };
+            reader.readAsDataURL(file);
+        };
+        input.click();
+        document.getElementById('attachOptions').style.display = 'none';
+    };
+
+    // ==================== أحداث Socket للدردشة ====================
+    socket?.on('new-message', (msg) => {
+        if (currentChat && (msg.from === currentChat.id || msg.to === currentChat.id)) {
+            chatMessages.push(msg);
+            renderMessages();
+            if (msg.to === currentUser.id) {
+                socket.emit('mark-seen', { from: msg.from });
+            }
+        } else {
+            loadChats();
+        }
+    });
+
+    socket?.on('message-sent', (msg) => {
+        if (currentChat && msg.from === currentUser.id && msg.to === currentChat.id) {
+            chatMessages.push(msg);
+            renderMessages();
+        }
+    });
+
+    socket?.on('typing', (data) => {
+        if (currentChat && data.from === currentChat.id) {
+            const bubble = document.getElementById('typingBubble');
+            bubble.style.display = data.isTyping ? 'flex' : 'none';
+        }
+    });
+
+    socket?.on('messages-seen', (data) => {
+        if (currentChat && data.by === currentChat.id) {
+            // تحديث حالة الرسائل
+        }
+    });
+
+    // ==================== دوال القصص ====================
+    window.showAddStory = () => {
+        document.getElementById('addStoryMenu').style.display = 'block';
+    };
+
+    window.closeAddStory = () => {
+        document.getElementById('addStoryMenu').style.display = 'none';
+    };
+
+    window.addTextStory = () => {
+        const text = prompt('أدخل نص القصة:');
+        if (text?.trim()) {
+            closeAddStory();
+            showToast('جاري النشر...', 'info');
+            fetch(`${SERVER_URL}/post-story`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: currentUser.id, text })
+            }).then(res => res.json()).then(data => {
+                if (data.success) {
+                    showToast('تم النشر', 'success');
+                    loadStories();
+                }
+            });
+        }
+    };
+
+    window.addImageStory = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                closeAddStory();
+                showToast('جاري الرفع...', 'info');
+                fetch(`${SERVER_URL}/post-story`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentUser.id, media: ev.target.result })
+                }).then(res => res.json()).then(data => {
+                    if (data.success) {
+                        showToast('تم النشر', 'success');
+                        loadStories();
+                    }
+                });
+            };
+            reader.readAsDataURL(file);
+        };
+        input.click();
+    };
+
+    window.addVideoStory = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'video/*';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                closeAddStory();
+                showToast('جاري الرفع...', 'info');
+                fetch(`${SERVER_URL}/post-story`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentUser.id, media: ev.target.result })
+                }).then(res => res.json()).then(data => {
+                    if (data.success) {
+                        showToast('تم النشر', 'success');
+                        loadStories();
+                    }
+                });
+            };
+            reader.readAsDataURL(file);
+        };
+        input.click();
+    };
+
+    window.viewStory = async (storyId) => {
+        try {
+            const res = await fetch(`${SERVER_URL}/story/${storyId}`);
+            const data = await res.json();
+            if (data.success) {
+                currentStory = data.story;
+                document.getElementById('storyUserAvatar').src = currentStory.userAvatar || 'https://via.placeholder.com/45';
+                document.getElementById('storyUserName').innerText = currentStory.userName;
+                document.getElementById('storyTime').innerText = new Date(currentStory.createdAt).toLocaleString('ar');
+
+                document.getElementById('storyImage').style.display = 'none';
+                document.getElementById('storyVideo').style.display = 'none';
+                document.getElementById('storyText').style.display = 'none';
+
+                if (currentStory.type === 'image') {
+                    document.getElementById('storyImage').src = currentStory.media;
+                    document.getElementById('storyImage').style.display = 'block';
+                } else if (currentStory.type === 'video') {
+                    document.getElementById('storyVideo').src = currentStory.media;
+                    document.getElementById('storyVideo').style.display = 'block';
+                } else {
+                    document.getElementById('storyText').innerText = currentStory.text;
+                    document.getElementById('storyText').style.display = 'block';
+                }
+
+                await loadStoryInteractions(storyId);
+                document.getElementById('storyViewerScreen').style.display = 'block';
+
+                fetch(`${SERVER_URL}/view-story`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ storyId, userId: currentUser.id })
+                });
+            }
+        } catch (err) {
+            showToast('فشل تحميل القصة', 'error');
+        }
+    };
+
+    async function loadStoryInteractions(storyId) {
+        try {
+            const res = await fetch(`${SERVER_URL}/story-interactions/${storyId}`);
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('storyViewsCount').innerText = data.viewers?.length || 0;
+                document.getElementById('storyLikesCount').innerText = data.likes || 0;
+                document.getElementById('storyCommentsCount').innerText = data.comments?.length || 0;
+
+                const viewers = data.viewers || [];
+                document.getElementById('viewersContainer').innerHTML = viewers.map(v => `
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <img src="${v.avatar || 'https://via.placeholder.com/35'}" style="width: 35px; height: 35px; border-radius: 50%;">
+                        <span style="flex: 1;">${v.name}</span>
+                        ${v.liked ? '<i class="fas fa-heart" style="color: #f472b6;"></i>' : ''}
+                    </div>
+                `).join('');
+
+                const comments = data.comments || [];
+                document.getElementById('commentsList').innerHTML = comments.map(c => `
+                    <div style="display: flex; gap: 10px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 20px; margin-bottom: 10px;">
+                        <img src="${c.avatar || 'https://via.placeholder.com/30'}" style="width: 30px; height: 30px; border-radius: 50%;">
+                        <div style="flex: 1;">
+                            <strong>${c.name}</strong><br>
+                            ${c.content}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        } catch (err) {}
+    }
+
+    window.closeStoryViewer = () => {
+        document.getElementById('storyViewerScreen').style.display = 'none';
+        const video = document.getElementById('storyVideo');
+        if (video) video.pause();
+    };
+
+    window.likeStory = () => {
+        if (!currentStory) return;
+        const btn = document.getElementById('storyLikeBtn');
+        btn.classList.toggle('liked');
+        
+        fetch(`${SERVER_URL}/interact`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                storyId: currentStory.id,
+                userId: currentUser.id,
+                type: 'like'
+            })
+        });
+    };
+
+    window.sendStoryComment = () => {
+        const input = document.getElementById('storyCommentInput');
+        const comment = input.value.trim();
+        if (!comment || !currentStory) return;
+        input.value = '';
+
+        fetch(`${SERVER_URL}/interact`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                storyId: currentStory.id,
+                userId: currentUser.id,
+                type: 'comment',
+                content: comment
+            })
+        }).then(() => loadStoryInteractions(currentStory.id));
+    };
+
+    window.toggleViewersList = () => {
+        const list = document.getElementById('viewersList');
+        list.style.display = list.style.display === 'none' ? 'block' : 'none';
+    };
+
+    window.showStoryMenu = () => {
+        if (currentStory && currentStory.userId === currentUser.id) {
+            document.getElementById('storyMenu').style.display = 'block';
+        }
+    };
+
+    window.closeStoryMenu = () => {
+        document.getElementById('storyMenu').style.display = 'none';
+    };
+
+    window.deleteStory = () => {
+        if (!currentStory || currentStory.userId !== currentUser.id) return;
+        if (confirm('حذف القصة؟')) {
+            fetch(`${SERVER_URL}/delete-story`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ storyId: currentStory.id })
+            }).then(() => {
+                showToast('تم الحذف', 'success');
+                closeStoryViewer();
+                closeStoryMenu();
+                loadStories();
+            });
+        }
+    };
+
+    // ==================== دوال المكالمات ====================
+    window.startAudioCall = async () => {
+        if (!currentChat) return;
+        const user = onlineUsers.get(currentChat.id);
+        if (!user) return showToast('المستخدم غير متصل', 'warning');
+        startCall('audio', user);
+    };
+
+    window.startVideoCall = async () => {
+        if (!currentChat) return;
+        const user = onlineUsers.get(currentChat.id);
+        if (!user) return showToast('المستخدم غير متصل', 'warning');
+        startCall('video', user);
+    };
+
+    async function startCall(type, user) {
+        try {
+            if (!localStream) {
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: type === 'video',
+                    audio: true
+                });
+            } else if (type === 'video' && !localStream.getVideoTracks().length) {
+                const newStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                localStream.addTrack(newStream.getVideoTracks()[0]);
+            }
+
+            peerConnection = new RTCPeerConnection({
+                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+            });
+
+            localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
+
+            peerConnection.ontrack = (e) => {
+                document.getElementById('remoteVideo').srcObject = e.streams[0];
+            };
+
+            peerConnection.onicecandidate = (e) => {
+                if (e.candidate) {
+                    socket.emit('ice-candidate', { to: user.id, candidate: e.candidate });
+                }
+            };
+
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+
+            currentCall = user.id;
+            socket.emit('call', {
+                to: user.id,
+                from: currentUser.name,
+                fromId: currentUser.id,
+                type,
+                offer
+            });
+
+            document.getElementById('videoCallContainer').style.display = 'flex';
+            document.getElementById('remoteName').innerText = user.name;
+            document.getElementById('localVideo').srcObject = localStream;
+
+        } catch (err) {
+            showToast('فشل بدء المكالمة', 'error');
+        }
+    }
+
+    socket?.on('offer', async (data) => {
+        if (isCallActive) {
+            socket.emit('reject-call', { to: data.fromId });
+            return;
+        }
+
+        incomingCall = data;
+        document.getElementById('callerName').innerText = data.from;
+        document.getElementById('callerAvatar').innerText = data.from[0];
+        document.getElementById('callType').innerText = data.type === 'video' ? 'مكالمة فيديو' : 'مكالمة صوتية';
+        document.getElementById('incomingCallModal').style.display = 'flex';
+
+        ringtone = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
+        ringtone.loop = true;
+        ringtone.play().catch(() => {});
+    });
+
+    window.acceptCall = async () => {
+        if (!incomingCall) return;
+        muteRingtone();
+        document.getElementById('incomingCallModal').style.display = 'none';
+
+        try {
+            if (!localStream) {
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: incomingCall.type === 'video',
+                    audio: true
+                });
+            }
+
+            peerConnection = new RTCPeerConnection({
+                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+            });
+
+            localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
+
+            peerConnection.ontrack = (e) => {
+                document.getElementById('remoteVideo').srcObject = e.streams[0];
+            };
+
+            peerConnection.onicecandidate = (e) => {
+                if (e.candidate) {
+                    socket.emit('ice-candidate', { to: incomingCall.fromId, candidate: e.candidate });
+                }
+            };
+
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(incomingCall.offer));
             const answer = await peerConnection.createAnswer();
             await peerConnection.setLocalDescription(answer);
-            
-            socket.emit('accept-call', { to: incomingCallData.fromId, answer });
-            socket.emit('call-accepted', { to: incomingCallData.fromId, from: myName });
-            
-            updateCallUI(true, `متصل مع ${incomingCallData.from}`, callType);
-            document.getElementById('endCallBtn').style.display = 'flex';
-            document.getElementById('remoteTag').innerHTML = `<span>${incomingCallData.from}</span>`;
-            
-            incomingCallData = null;
-        }
 
-        function rejectCall() {
-            if (incomingCallData) {
-                socket.emit('reject-call', { to: incomingCallData.fromId });
-                document.getElementById('incomingCallModal').style.display = 'none';
-                incomingCallData = null;
+            currentCall = incomingCall.fromId;
+            socket.emit('accept-call', { to: incomingCall.fromId, answer });
+
+            document.getElementById('videoCallContainer').style.display = 'flex';
+            document.getElementById('remoteName').innerText = incomingCall.from;
+            document.getElementById('localVideo').srcObject = localStream;
+
+            startCallTimer();
+            isCallActive = true;
+
+        } catch (err) {
+            showToast('فشل قبول المكالمة', 'error');
+        }
+    };
+
+    window.rejectCall = () => {
+        if (incomingCall) {
+            socket.emit('reject-call', { to: incomingCall.fromId });
+            muteRingtone();
+            document.getElementById('incomingCallModal').style.display = 'none';
+        }
+    };
+
+    window.muteRingtone = () => {
+        if (ringtone) {
+            ringtone.pause();
+            ringtone = null;
+        }
+    };
+
+    function startCallTimer() {
+        callSeconds = 0;
+        callTimer = setInterval(() => {
+            callSeconds++;
+            const m = Math.floor(callSeconds / 60);
+            const s = callSeconds % 60;
+            document.getElementById('callTimer').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }, 1000);
+    }
+
+    function stopCallTimer() {
+        if (callTimer) clearInterval(callTimer);
+        document.getElementById('callTimer').innerText = '00:00';
+    }
+
+    window.endCall = () => {
+        if (currentCall) socket.emit('end-call', { to: currentCall });
+        if (peerConnection) peerConnection.close();
+        peerConnection = null;
+        isCallActive = false;
+        currentCall = null;
+        document.getElementById('videoCallContainer').style.display = 'none';
+        stopCallTimer();
+    };
+
+    document.getElementById('callMicBtn')?.addEventListener('click', () => {
+        if (localStream) {
+            const track = localStream.getAudioTracks()[0];
+            if (track) {
+                track.enabled = !track.enabled;
+                document.getElementById('callMicBtn').innerHTML = track.enabled ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash"></i>';
             }
         }
+    });
 
-        async function handleAnswer(data) {
-            if (!peerConnection) return;
+    document.getElementById('callCamBtn')?.addEventListener('click', () => {
+        if (localStream) {
+            const track = localStream.getVideoTracks()[0];
+            if (track) {
+                track.enabled = !track.enabled;
+                document.getElementById('callCamBtn').innerHTML = track.enabled ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
+            }
+        }
+    });
+
+    document.getElementById('callEndBtn')?.addEventListener('click', endCall);
+
+    window.flipCamera = async () => {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const cameras = devices.filter(d => d.kind === 'videoinput');
+            if (cameras.length < 2) {
+                showToast('لا توجد كاميرا خلفية', 'warning');
+                return;
+            }
+
+            const currentId = localStream.getVideoTracks()[0].getSettings().deviceId;
+            const nextCam = cameras.find(c => c.deviceId !== currentId) || cameras[0];
+            const newStream = await navigator.mediaDevices.getUserMedia({
+                video: { deviceId: { exact: nextCam.deviceId } }
+            });
+            const newTrack = newStream.getVideoTracks()[0];
+
+            const sender = peerConnection?.getSenders().find(s => s.track?.kind === 'video');
+            if (sender) await sender.replaceTrack(newTrack);
+
+            localStream.removeTrack(localStream.getVideoTracks()[0]);
+            localStream.addTrack(newTrack);
+            document.getElementById('localVideo').srcObject = localStream;
+
+        } catch (err) {
+            showToast('فشل تبديل الكاميرا', 'error');
+        }
+    };
+
+    socket?.on('call-accepted', (data) => {
+        if (currentCall === data.fromId) {
+            startCallTimer();
+            isCallActive = true;
+            document.getElementById('remoteName').innerText = data.from;
+        }
+    });
+
+    socket?.on('call-rejected', (data) => {
+        if (currentCall === data.fromId) {
+            showToast(`رفض ${data.from} المكالمة`, 'warning');
+            endCall();
+        }
+    });
+
+    socket?.on('answer', async (data) => {
+        if (peerConnection && currentCall === data.fromId) {
             await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
         }
+    });
 
-        function handleIceCandidate(data) {
-            if (peerConnection) {
-                peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-            }
+    socket?.on('ice-candidate', async (data) => {
+        if (peerConnection && currentCall === data.fromId) {
+            await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
         }
+    });
 
-        async function handleCallAccepted(data) {
-            if (!peerConnection || currentCall !== data.fromId) return;
-            updateCallUI(true, `متصل مع ${data.from}`, callType);
-            document.getElementById('remoteTag').innerHTML = `<span>${data.from}</span>`;
+    socket?.on('call-ended', (data) => {
+        if (isCallActive && currentCall === data.fromId) {
+            showToast('انتهت المكالمة', 'info');
+            endCall();
         }
+    });
 
-        function endCall() {
-            if (currentCall) {
-                socket.emit('end-call', { to: currentCall });
-            }
-            if (peerConnection) {
-                peerConnection.close();
-                peerConnection = null;
-            }
-            resetCallState();
-            document.getElementById('endCallBtn').style.display = 'none';
-            stopCallTimer();
-        }
-
-        function resetCallState() {
-            isCallActive = false;
-            currentCall = null;
-            callType = null;
-            incomingCallData = null;
-            document.getElementById('remoteVideo').srcObject = null;
-            document.getElementById('remoteTag').innerHTML = '<span>في انتظار الاتصال...</span>';
-            document.getElementById('remoteVideoContainer').classList.remove('active-call');
-            updateCallUI(false, 'جاهز للاتصال', null);
-        }
-
-        // ==================== دوال مساعدة ====================
-        function setupControls() {
-            document.getElementById('toggleMicBtn').addEventListener('click', toggleMic);
-            document.getElementById('toggleCamBtn').addEventListener('click', toggleCam);
-            document.getElementById('toggleVideoBtn').addEventListener('click', toggleCam);
-            document.getElementById('toggleAudioBtn').addEventListener('click', toggleMic);
-            
-            document.getElementById('targetNameInput').addEventListener('input', updateSearchResults);
-            document.getElementById('targetNameInput').addEventListener('focus', () => {
-                updateSearchResults();
-                document.getElementById('searchResults').style.display = 'block';
-            });
-            
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.search-container')) {
-                    document.getElementById('searchResults').style.display = 'none';
-                }
-            });
-        }
-
-        function toggleMic() {
-            if (localStream) {
-                const audioTrack = localStream.getAudioTracks()[0];
-                if (audioTrack) {
-                    audioTrack.enabled = !audioTrack.enabled;
-                    const btn = document.getElementById('toggleMicBtn');
-                    btn.classList.toggle('active', audioTrack.enabled);
-                    btn.classList.toggle('inactive', !audioTrack.enabled);
-                    document.getElementById('localMicIndicator').classList.toggle('on', audioTrack.enabled);
-                    document.getElementById('localMicIndicator').classList.toggle('off', !audioTrack.enabled);
-                }
-            }
-        }
-
-        function toggleCam() {
-            if (localStream) {
-                const videoTrack = localStream.getVideoTracks()[0];
-                if (videoTrack) {
-                    videoTrack.enabled = !videoTrack.enabled;
-                    const btn = document.getElementById('toggleCamBtn');
-                    btn.classList.toggle('active', videoTrack.enabled);
-                    btn.classList.toggle('inactive', !videoTrack.enabled);
-                    document.getElementById('localCamIndicator').classList.toggle('on', videoTrack.enabled);
-                    document.getElementById('localCamIndicator').classList.toggle('off', !videoTrack.enabled);
-                }
-            }
-        }
-
-        function updateSearchResults() {
-            const searchTerm = document.getElementById('targetNameInput').value.toLowerCase();
-            const resultsContainer = document.getElementById('searchResults');
-            resultsContainer.innerHTML = '';
-            
-            let filtered = connectedUsers;
-            if (searchTerm.trim()) {
-                filtered = connectedUsers.filter(u => u.name.toLowerCase().includes(searchTerm));
-            }
-            
-            if (filtered.length > 0) {
-                filtered.forEach(user => {
-                    const item = document.createElement('div');
-                    item.style.cssText = 'padding: 10px; display: flex; align-items: center; gap: 10px; cursor: pointer; border-bottom: 1px solid var(--border);';
-                    item.onmouseover = () => item.style.background = 'var(--border)';
-                    item.onmouseout = () => item.style.background = '';
-                    item.onclick = () => {
-                        document.getElementById('targetNameInput').value = user.name;
-                        resultsContainer.style.display = 'none';
-                    };
-                    item.innerHTML = `
-                        <img src="${user.avatar || 'https://via.placeholder.com/30'}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
-                        <div>
-                            <div style="font-weight: 600;">${user.name}</div>
-                            <div style="font-size: 12px; color: var(--text-secondary);">${user.inCall ? 'في مكالمة' : 'متصل'}</div>
-                        </div>
-                    `;
-                    resultsContainer.appendChild(item);
-                });
-            } else {
-                resultsContainer.innerHTML = '<div style="padding: 10px; text-align: center;">لا توجد نتائج</div>';
-            }
-            resultsContainer.style.display = 'block';
-        }
-
-        function updateOnlineUsersCount() {
-            document.getElementById('onlineUsers').innerText = `المستخدمون المتصلون: ${connectedUsers.length + 1}`;
-        }
-
-        function updateStatus(status, isConnected) {
-            document.getElementById('connectionStatus').innerText = status;
-            document.getElementById('statusMsg').innerHTML = `الحالة: <span class="${isConnected ? 'status-connected' : 'status-disconnected'}">${status}</span>`;
-        }
-
-        function updateCallUI(isActive, status, type) {
-            const remoteContainer = document.getElementById('remoteVideoContainer');
-            if (isActive) {
-                remoteContainer.classList.add('active-call');
-            } else {
-                remoteContainer.classList.remove('active-call');
-            }
-            if (type === 'audio') {
-                document.getElementById('remoteCamIndicator').classList.remove('on');
-                document.getElementById('remoteCamIndicator').classList.add('off');
-            }
-        }
-
-        function showIncomingCallModal(data) {
-            document.getElementById('callerName').innerText = data.from;
-            document.getElementById('callerAvatar').innerText = data.from.charAt(0).toUpperCase();
-            document.getElementById('incomingCallType').innerText = data.type === 'video' ? 'اتصال مرئي' : 'اتصال صوتي';
-            document.getElementById('incomingCallModal').style.display = 'flex';
-        }
-
-        function startCallTimer() {
-            callStartTime = new Date();
-            document.getElementById('callTimer').style.display = 'block';
-            callTimer = setInterval(() => {
-                const diff = Math.floor((new Date() - callStartTime) / 1000);
-                const mins = Math.floor(diff / 60);
-                const secs = diff % 60;
-                document.getElementById('timerDisplay').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-            }, 1000);
-        }
-
-        function stopCallTimer() {
-            clearInterval(callTimer);
-            callTimer = null;
-            document.getElementById('timerDisplay').innerText = '00:00';
-            document.getElementById('callTimer').style.display = 'none';
-        }
-
-        function logout() {
-            if (isCallActive) endCall();
-            if (localStream) localStream.getTracks().forEach(t => t.stop());
-            if (socket) socket.disconnect();
-            document.getElementById('mainApp').style.display = 'none';
-            document.getElementById('setupScreen').style.display = 'flex';
-            document.getElementById('setupScreen').style.opacity = '1';
-            showLoginScreen();
-        }
-
-        window.onload = () => {
-            showLoginScreen();
+    // ==================== دوال مساعدة إضافية ====================
+    window.playAudio = (el) => {
+        const audio = new Audio(el.dataset.src);
+        audio.play();
+        el.querySelector('i').className = 'fas fa-pause';
+        audio.onended = () => {
+            el.querySelector('i').className = 'fas fa-play';
         };
-    </script>
+    };
+
+    window.viewMedia = (url) => {
+        window.open(url, '_blank');
+    };
+
+    // إخفاء القوائم عند النقر خارجها
+    document.addEventListener('click', () => {
+        document.getElementById('attachOptions').style.display = 'none';
+        document.getElementById('storyMenu').style.display = 'none';
+        document.getElementById('addStoryMenu').style.display = 'none';
+    });
+</script>
 </body>
 </html>
