@@ -2560,5 +2560,1154 @@
         document.getElementById('addStoryMenu').style.display = 'none';
     });
 </script>
+<!-- ====== تحسينات الأداء والتخزين المحلي ====== -->
+<script>
+// ==================== نظام التخزين المحلي (حفظ الجلسة) ====================
+const STORAGE_KEYS = {
+    USER: 'ron_user_session',
+    THEME: 'ron_theme',
+    FONT_SIZE: 'ron_font_size',
+    FONT_FAMILY: 'ron_font_family'
+};
+
+// حفظ جلسة المستخدم
+function saveUserSession() {
+    if (currentUser?.id) {
+        const sessionData = {
+            id: currentUser.id,
+            name: currentUser.name,
+            email: currentUser.email,
+            avatar: currentUser.avatar,
+            bio: currentUser.bio,
+            timestamp: Date.now()
+        };
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(sessionData));
+    }
+}
+
+// استعادة جلسة المستخدم
+function loadUserSession() {
+    const saved = localStorage.getItem(STORAGE_KEYS.USER);
+    if (saved) {
+        try {
+            const session = JSON.parse(saved);
+            // التحقق من صلاحية الجلسة (7 أيام)
+            if (Date.now() - session.timestamp < 7 * 24 * 60 * 60 * 1000) {
+                return session;
+            }
+        } catch (e) {}
+    }
+    return null;
+}
+
+// ==================== نظام الحالة والكتابة المحسن ====================
+
+// فقاعة الكتابة - مستطيل بيضوي صغير جداً
+const typingBubbleHTML = `
+    <div class="typing-bubble-enhanced" style="display: none; align-items: center; gap: 4px; padding: 8px 16px; background: var(--card); border-radius: 30px; width: fit-content; margin: 5px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <span style="width: 6px; height: 6px; background: var(--text-secondary); border-radius: 50%; animation: typingDot 1.2s infinite;"></span>
+        <span style="width: 6px; height: 6px; background: var(--text-secondary); border-radius: 50%; animation: typingDot 1.2s infinite; animation-delay: 0.2s;"></span>
+        <span style="width: 6px; height: 6px; background: var(--text-secondary); border-radius: 50%; animation: typingDot 1.2s infinite; animation-delay: 0.4s;"></span>
+    </div>
+`;
+
+// إضافة الفقاعة للصفحة
+document.body.insertAdjacentHTML('beforeend', typingBubbleHTML);
+const typingBubbleEnhanced = document.querySelector('.typing-bubble-enhanced');
+
+// نظام الكتابة المحسن مع مؤقت دقيق
+let typingTimer = null;
+let typingTimeoutMs = 1000; // ثانية واحدة بعد التوقف
+
+// إرسال حالة الكتابة
+function sendTypingStatus(isTyping) {
+    if (!currentChat?.id) return;
+    
+    socket.emit('typing', {
+        to: currentChat.id,
+        isTyping: isTyping
+    });
+}
+
+// معالجة الكتابة في الوقت الفعلي
+document.getElementById('chatInput')?.addEventListener('input', function() {
+    const hasText = this.value.trim().length > 0;
+    
+    // تبديل الأزرار
+    const recordBtn = document.getElementById('recordBtn');
+    const sendBtn = document.getElementById('sendBtn');
+    
+    if (hasText) {
+        recordBtn.style.display = 'none';
+        sendBtn.style.display = 'flex';
+        
+        // إرسال حالة الكتابة (مرة واحدة كل 500ms)
+        if (!typingTimer) {
+            sendTypingStatus(true);
+            typingTimer = setTimeout(() => {
+                typingTimer = null;
+            }, 500);
+        }
+        
+        // إعادة تعيين مؤقت التوقف
+        if (window.stopTypingTimer) {
+            clearTimeout(window.stopTypingTimer);
+        }
+        window.stopTypingTimer = setTimeout(() => {
+            sendTypingStatus(false);
+            window.stopTypingTimer = null;
+        }, typingTimeoutMs);
+        
+    } else {
+        recordBtn.style.display = 'flex';
+        sendBtn.style.display = 'none';
+        
+        // إيقاف الكتابة فوراً
+        sendTypingStatus(false);
+        if (window.stopTypingTimer) {
+            clearTimeout(window.stopTypingTimer);
+            window.stopTypingTimer = null;
+        }
+    }
+});
+
+// استقبال حالة الكتابة من الطرف الآخر
+socket?.on('typing', (data) => {
+    if (currentChat && data.from === currentChat.id) {
+        if (data.isTyping) {
+            typingBubbleEnhanced.style.display = 'flex';
+        } else {
+            typingBubbleEnhanced.style.display = 'none';
+        }
+    }
+});
+
+// ==================== نظام الرسائل الفورية (بدون تأخير) ====================
+
+// إرسال رسالة فورية
+window.sendMessageImmediate = function(content, type = 'text') {
+    if (!currentChat || !content) return false;
+    
+    // إنشاء معرف مؤقت
+    const tempId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    
+    // إنشاء رسالة مؤقتة
+    const tempMessage = {
+        id: tempId,
+        from: currentUser.id,
+        to: currentChat.id,
+        type: type,
+        content: content,
+        timestamp: Date.now(),
+        seen: false,
+        temp: true
+    };
+    
+    // إضافة للعرض الفوري
+    chatMessages.push(tempMessage);
+    renderMessages();
+    
+    // إرسال عبر السيرفر
+    socket.emit('send-message', {
+        to: currentChat.id,
+        type: type,
+        content: content,
+        tempId: tempId
+    });
+    
+    return true;
+};
+
+// استقبال تأكيد الإرسال
+socket?.on('message-sent', (data) => {
+    // إزالة الرسالة المؤقتة
+    const index = chatMessages.findIndex(m => m.temp && m.content === data.content);
+    if (index !== -1) {
+        chatMessages.splice(index, 1);
+    }
+    
+    // إضافة الرسالة الحقيقية
+    chatMessages.push(data);
+    renderMessages();
+});
+
+// استقبال رسالة جديدة (فورية)
+socket?.on('new-message', (msg) => {
+    if (currentChat && (msg.from === currentChat.id || msg.to === currentChat.id)) {
+        chatMessages.push(msg);
+        renderMessages();
+        
+        // تأكيد المشاهدة
+        if (msg.to === currentUser.id) {
+            socket.emit('mark-seen', { from: msg.from });
+        }
+        
+        // تشغيل صوت الإشعار (إذا لم تكن في نفس الشاشة)
+        if (!currentChat || msg.from !== currentChat.id) {
+            playNotificationSound();
+        }
+    } else {
+        // تحديث قائمة المحادثات
+        loadChats();
+    }
+});
+
+// ==================== نظام الرسائل الصوتية المحسن مع الذبذبات ====================
+
+// تحليل الموجات الصوتية
+class AudioVisualizer {
+    constructor(audioContext, stream) {
+        this.audioContext = audioContext;
+        this.source = audioContext.createMediaStreamSource(stream);
+        this.analyser = audioContext.createAnalyser();
+        this.analyser.fftSize = 256;
+        this.source.connect(this.analyser);
+        this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+    }
+    
+    getWaveform() {
+        this.analyser.getByteFrequencyData(this.dataArray);
+        // حساب متوسط القيم للموجات الأربع
+        const avg = Array(4).fill(0);
+        for (let i = 0; i < 4; i++) {
+            const start = Math.floor(i * this.dataArray.length / 4);
+            const end = Math.floor((i + 1) * this.dataArray.length / 4);
+            let sum = 0;
+            for (let j = start; j < end; j++) {
+                sum += this.dataArray[j];
+            }
+            avg[i] = sum / (end - start) / 255; // تطبيع من 0-1
+        }
+        return avg;
+    }
+}
+
+let audioVisualizer = null;
+let animationFrame = null;
+
+// بدء التسجيل مع الذبذبات
+async function startEnhancedRecording() {
+    if (!currentChat) return;
+    
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        audioVisualizer = new AudioVisualizer(audioContext, stream);
+        
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        
+        mediaRecorder.onstop = () => {
+            // إيقاف الذبذبات
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+                animationFrame = null;
+            }
+            
+            const blob = new Blob(audioChunks, { type: 'audio/webm' });
+            const reader = new FileReader();
+            reader.onload = () => {
+                // حساب المدة
+                const duration = Math.floor((Date.now() - recordStartTime) / 1000);
+                const minutes = Math.floor(duration / 60);
+                const seconds = duration % 60;
+                const durationStr = `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+                
+                socket.emit('send-message', {
+                    to: currentChat.id,
+                    type: 'audio',
+                    content: reader.result,
+                    duration: durationStr
+                });
+            };
+            reader.readAsDataURL(blob);
+            
+            // إغلاق المسارات
+            stream.getTracks().forEach(t => t.stop());
+            audioContext.close();
+        };
+        
+        mediaRecorder.start();
+        recordStartTime = Date.now();
+        
+        // بدء رسم الذبذبات
+        function drawWaveform() {
+            if (!audioVisualizer) return;
+            
+            const waves = audioVisualizer.getWaveform();
+            const waveElements = document.querySelectorAll('.audio-wave.recording span');
+            
+            waveElements.forEach((el, i) => {
+                if (i < waves.length) {
+                    const height = 15 + (waves[i] * 30); // 15-45px
+                    el.style.height = height + 'px';
+                }
+            });
+            
+            animationFrame = requestAnimationFrame(drawWaveform);
+        }
+        
+        // إنشاء مؤشر التسجيل مع الموجات
+        const indicator = document.getElementById('recordingIndicator');
+        if (indicator) {
+            indicator.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-microphone" style="color: white;"></i>
+                    <div class="audio-wave recording" style="display: flex; align-items: center; gap: 3px; height: 30px;">
+                        <span style="width: 4px; background: white; border-radius: 2px;"></span>
+                        <span style="width: 4px; background: white; border-radius: 2px;"></span>
+                        <span style="width: 4px; background: white; border-radius: 2px;"></span>
+                        <span style="width: 4px; background: white; border-radius: 2px;"></span>
+                    </div>
+                    <span id="recTime">0:00</span>
+                    <i class="fas fa-arrow-up" style="margin-right: 8px;"></i>
+                </div>
+            `;
+        }
+        
+        drawWaveform();
+        
+    } catch (err) {
+        showToast('تعذر الوصول للميكروفون', 'error');
+    }
+}
+
+// تعديل دالة التسجيل لاستخدام النظام المحسن
+const originalStartRecording = window.startRecording;
+window.startRecording = function(e) {
+    if (!currentChat) return;
+    
+    isRecording = true;
+    recordStartY = e.clientY || (e.touches?.[0]?.clientY || 0);
+    recordBtn.classList.add('recording');
+    recordBtn.innerHTML = '<i class="fas fa-stop"></i>';
+    
+    const indicator = document.createElement('div');
+    indicator.className = 'recording-indicator';
+    indicator.id = 'recordingIndicator';
+    indicator.style.cssText = 'position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); background: var(--danger); padding: 10px 20px; border-radius: 40px; display: flex; align-items: center; gap: 10px; z-index: 100;';
+    document.querySelector('.chat-input-area').appendChild(indicator);
+    
+    startEnhancedRecording();
+    
+    // مؤقت المدة
+    let seconds = 0;
+    window.recTimer = setInterval(() => {
+        seconds++;
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        const timeEl = document.getElementById('recTime');
+        if (timeEl) timeEl.innerText = `${m}:${s < 10 ? '0' + s : s}`;
+    }, 1000);
+};
+
+// ==================== نظام المتابعة المتبادلة وظهور زر المحادثة ====================
+
+let followersSet = new Set(); // من يتابعني
+
+// تحميل المتابعين
+async function loadFollowers() {
+    try {
+        const res = await fetch(`${SERVER_URL}/followers/${currentUser.id}`);
+        const data = await res.json();
+        if (data.success) {
+            followersSet = new Set(data.followers.map(f => f.userId));
+        }
+    } catch (err) {}
+}
+
+// التحقق من المتابعة المتبادلة
+function isMutualFollow(userId) {
+    return following.has(userId) && followersSet.has(userId);
+}
+
+// تحديث أزرار المحادثة في كل مكان
+function updateChatButtons() {
+    // تحديث في قائمة المحادثات
+    document.querySelectorAll('.chat-item').forEach(item => {
+        const userId = item.dataset.userId;
+        if (userId && isMutualFollow(userId)) {
+            let btn = item.querySelector('.direct-chat-btn');
+            if (!btn) {
+                btn = document.createElement('button');
+                btn.className = 'direct-chat-btn';
+                btn.innerHTML = '<i class="fas fa-comment"></i>';
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const name = item.querySelector('.chat-name')?.innerText.split(' ')[0] || 'مستخدم';
+                    const avatar = item.querySelector('.chat-avatar')?.src || '';
+                    openChat(userId, name, avatar);
+                };
+                btn.style.cssText = 'background: var(--primary); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 8px;';
+                item.querySelector('.chat-info')?.after(btn);
+            }
+        }
+    });
+    
+    // تحديث في قائمة الاقتراحات
+    document.querySelectorAll('.suggestion-item').forEach(item => {
+        const userId = item.dataset.userId;
+        if (userId && isMutualFollow(userId)) {
+            let btn = item.querySelector('.mutual-chat-btn');
+            if (!btn) {
+                btn = document.createElement('button');
+                btn.className = 'mutual-chat-btn';
+                btn.innerHTML = '<i class="fas fa-comment"></i>';
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const name = item.querySelector('.suggestion-name')?.innerText || 'مستخدم';
+                    const avatar = item.querySelector('.suggestion-avatar')?.src || '';
+                    openChat(userId, name, avatar);
+                };
+                btn.style.cssText = 'background: var(--primary); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer;';
+                item.querySelector('.follow-btn')?.after(btn);
+            }
+        }
+    });
+}
+
+// ==================== تحسين عرض القصص ====================
+
+// إصلاح مشكلة عرض القصص
+window.viewStory = async function(storyId) {
+    try {
+        const res = await fetch(`${SERVER_URL}/story/${storyId}`);
+        const data = await res.json();
+        
+        if (data.success) {
+            currentStory = data.story;
+            
+            // تعبئة البيانات
+            document.getElementById('storyUserAvatar').src = currentStory.userAvatar || 'https://via.placeholder.com/45';
+            document.getElementById('storyUserName').innerText = currentStory.userName;
+            document.getElementById('storyTime').innerText = new Date(currentStory.createdAt).toLocaleString('ar');
+            
+            // إخفاء كل العناصر
+            document.getElementById('storyImage').style.display = 'none';
+            document.getElementById('storyVideo').style.display = 'none';
+            document.getElementById('storyText').style.display = 'none';
+            
+            // عرض المحتوى حسب النوع
+            if (currentStory.media) {
+                // تحديد إذا كان media صورة أو فيديو
+                if (currentStory.media.includes('image') || currentStory.media.match(/\.(jpg|jpeg|png|gif|webp)/i)) {
+                    document.getElementById('storyImage').src = currentStory.media;
+                    document.getElementById('storyImage').style.display = 'block';
+                } else {
+                    document.getElementById('storyVideo').src = currentStory.media;
+                    document.getElementById('storyVideo').style.display = 'block';
+                }
+            } else if (currentStory.text) {
+                document.getElementById('storyText').innerText = currentStory.text;
+                document.getElementById('storyText').style.display = 'block';
+            }
+            
+            // تحميل التفاعلات
+            await loadStoryInteractions(storyId);
+            
+            // إظهار الشاشة
+            document.getElementById('storyViewerScreen').style.display = 'block';
+            
+            // تسجيل المشاهدة
+            fetch(`${SERVER_URL}/view-story`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ storyId, userId: currentUser.id })
+            });
+            
+            // إرسال حدث عبر socket
+            if (socket) {
+                socket.emit('view-story', { storyId, userId: currentUser.id });
+            }
+        }
+    } catch (err) {
+        console.error('❌ فشل تحميل القصة:', err);
+        showToast('فشل تحميل القصة', 'error');
+    }
+};
+
+// إصلاح نشر القصة
+window.addTextStory = function() {
+    const text = prompt('أدخل نص القصة:');
+    if (text?.trim()) {
+        closeAddStory();
+        showToast('جاري النشر...', 'info');
+        
+        fetch(`${SERVER_URL}/post-story`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                userId: currentUser.id, 
+                text: text.trim() 
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('تم النشر', 'success');
+                loadStories();
+            } else {
+                showToast('فشل النشر', 'error');
+            }
+        })
+        .catch(err => {
+            console.error('❌ خطأ:', err);
+            showToast('خطأ في الاتصال', 'error');
+        });
+    }
+};
+
+window.addImageStory = function() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        closeAddStory();
+        showToast('جاري رفع الصورة...', 'info');
+        
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            fetch(`${SERVER_URL}/post-story`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    userId: currentUser.id, 
+                    media: ev.target.result 
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('تم النشر', 'success');
+                    loadStories();
+                } else {
+                    showToast('فشل النشر', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('❌ خطأ:', err);
+                showToast('خطأ في الاتصال', 'error');
+            });
+        };
+        reader.readAsDataURL(file);
+    };
+    input.click();
+};
+
+window.addVideoStory = function() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'video/*';
+    
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        closeAddStory();
+        showToast('جاري رفع الفيديو...', 'info');
+        
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            fetch(`${SERVER_URL}/post-story`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    userId: currentUser.id, 
+                    media: ev.target.result 
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('تم النشر', 'success');
+                    loadStories();
+                } else {
+                    showToast('فشل النشر', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('❌ خطأ:', err);
+                showToast('خطأ في الاتصال', 'error');
+            });
+        };
+        reader.readAsDataURL(file);
+    };
+    input.click();
+};
+
+// ==================== تحسين حجم الواجهة ====================
+
+// نظام الاستجابة التلقائي للحجم
+function handleResize() {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+    
+    // تعديل ارتفاعات الشاشات
+    const screens = document.querySelectorAll('.screen');
+    screens.forEach(screen => {
+        screen.style.minHeight = `calc(${vh * 100}px - 160px)`;
+    });
+    
+    // تعديل ارتفاع الشات
+    const chatScreen = document.querySelector('.chat-container');
+    if (chatScreen) {
+        chatScreen.style.height = `${vh * 100}px`;
+    }
+}
+
+window.addEventListener('resize', handleResize);
+window.addEventListener('orientationchange', handleResize);
+handleResize();
+
+// ==================== تحسينات الإرسال ====================
+
+// إرسال بالضغط على Enter
+document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const content = e.target.value.trim();
+        if (content && currentChat) {
+            sendMessageImmediate(content, 'text');
+        }
+    }
+});
+
+// ==================== تهيئة النظام ====================
+
+// استعادة الجلسة عند التحميل
+(async function initializeApp() {
+    const savedSession = loadUserSession();
+    if (savedSession) {
+        currentUser = savedSession;
+        document.getElementById('headerName').innerText = currentUser.name;
+        document.getElementById('headerAvatar').src = currentUser.avatar || 'https://via.placeholder.com/48';
+        
+        // إخفاء شاشة المصادقة
+        authScreen.style.display = 'none';
+        mainApp.style.display = 'block';
+        
+        // الاتصال بالسيرفر
+        connectSocket();
+        
+        // تحميل البيانات
+        await loadFollowers();
+        await loadFollowing();
+        await loadSuggestions();
+        await loadStories();
+        await loadChats();
+    }
+})();
+
+// تحديث دالة connectSocket
+const originalConnectSocket = connectSocket;
+connectSocket = function() {
+    originalConnectSocket();
+    
+    // إضافة معالجة حالة المستخدمين
+    socket?.on('users-updated', (users) => {
+        onlineUsers.clear();
+        users.forEach(u => onlineUsers.set(u.userId, u));
+        updateUserOnlineStatus();
+        updateChatButtons();
+    });
+};
+
+// تحديث دالة toggleFollow
+const originalToggleFollow = window.toggleFollow;
+window.toggleFollow = async function(targetId) {
+    await originalToggleFollow(targetId);
+    await loadFollowers(); // إعادة تحميل المتابعين
+    updateChatButtons(); // تحديث الأزرار
+};
+
+// حفظ الجلسة بعد تسجيل الدخول
+const originalShowAuthSuccess = showAuthSuccess;
+showAuthSuccess = function() {
+    originalShowAuthSuccess();
+    saveUserSession();
+    loadFollowers();
+};
+
+// ==================== أنماط إضافية ====================
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes typingDot {
+        0%, 60%, 100% { transform: translateY(0); }
+        30% { transform: translateY(-6px); }
+    }
+    
+    .typing-bubble-enhanced {
+        animation: fadeIn 0.2s ease;
+    }
+    
+    .audio-wave.recording span {
+        transition: height 0.1s ease;
+        background: white;
+    }
+    
+    .direct-chat-btn, .mutual-chat-btn {
+        transition: all 0.2s;
+    }
+    
+    .direct-chat-btn:hover, .mutual-chat-btn:hover {
+        transform: scale(1.1);
+        background: var(--primary-dark) !important;
+    }
+    
+    .direct-chat-btn:active, .mutual-chat-btn:active {
+        transform: scale(0.95);
+    }
+    
+    /* تحسينات للشاشات الصغيرة */
+    @media (max-width: 380px) {
+        .typing-bubble-enhanced {
+            padding: 6px 12px;
+        }
+        .typing-bubble-enhanced span {
+            width: 5px;
+            height: 5px;
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
+<!-- ====== حل مشكلة تأخر الرسائل بشكل نهائي ====== -->
+<script>
+// ==================== نظام الرسائل الفائق السرعة (Zero Lag) ====================
+
+// إلغاء جميع المؤقتات القديمة
+if (window.messageTimer) clearInterval(window.messageTimer);
+if (window.typingTimer) clearTimeout(window.typingTimer);
+
+// ==================== 1. تحسين اتصال Socket ====================
+if (socket) {
+    // إلغاء جميع المستمعين القديمة لتجنب التكرار
+    socket.off('new-message');
+    socket.off('message-sent');
+}
+
+// إعادة تعريف socket مع إعدادات سرعة عالية
+socket = io(SERVER_URL, {
+    reconnection: true,
+    reconnectionAttempts: 10,
+    reconnectionDelay: 500,
+    reconnectionDelayMax: 2000,
+    timeout: 5000,
+    transports: ['websocket'], // استخدام WebSocket فقط للسرعة
+    upgrade: false
+});
+
+// ==================== 2. نظام الرسائل الفورية (Direct Push) ====================
+
+// ذاكرة تخزين مؤقت للرسائل
+const messageCache = new Map();
+let lastMessageTime = 0;
+
+// إرسال رسالة - لا تأخير نهائياً
+window.sendMessageNow = function(content, type = 'text') {
+    if (!currentChat || !content) return false;
+    
+    const now = Date.now();
+    
+    // إنشاء رسالة فورية
+    const message = {
+        id: 'temp_' + now + '_' + Math.random().toString(36).substr(2, 5),
+        from: currentUser.id,
+        to: currentChat.id,
+        type: type,
+        content: content,
+        timestamp: now,
+        seen: false,
+        status: 'sending'
+    };
+    
+    // عرض فوري (0ms)
+    chatMessages.push(message);
+    renderMessages();
+    
+    // إرسال عبر socket (موازي)
+    socket.emit('send-message', {
+        to: currentChat.id,
+        type: type,
+        content: content,
+        clientId: message.id,
+        timestamp: now
+    });
+    
+    // تخزين في الكاش
+    messageCache.set(message.id, message);
+    
+    // تنظيف حقل الإدخال
+    document.getElementById('chatInput').value = '';
+    document.getElementById('recordBtn').style.display = 'flex';
+    document.getElementById('sendBtn').style.display = 'none';
+    
+    return true;
+};
+
+// ==================== 3. استقبال الرسائل بسرعة الضوء ====================
+
+socket.on('new-message', (msg) => {
+    console.log('⚡ رسالة جديدة واصلة:', msg);
+    
+    // إذا كنا في نفس المحادثة
+    if (currentChat && (msg.from === currentChat.id || msg.to === currentChat.id)) {
+        
+        // البحث عن رسالة مؤقتة بنفس المحتوى
+        const existingIndex = chatMessages.findIndex(m => 
+            m.temp && m.content === msg.content && m.from === msg.from
+        );
+        
+        if (existingIndex !== -1) {
+            // استبدال الرسالة المؤقتة بالحقيقية
+            chatMessages[existingIndex] = msg;
+        } else {
+            // رسالة جديدة تماماً
+            chatMessages.push(msg);
+        }
+        
+        // إعادة الرسم (بسرعة)
+        renderMessages();
+        
+        // تأكيد المشاهدة
+        if (msg.to === currentUser.id) {
+            socket.emit('mark-seen', { from: msg.from });
+        }
+        
+        // تشغيل صوت فقط إذا كانت نافذة الشات غير نشطة
+        if (document.hidden) {
+            playNotificationSound();
+        }
+    } else {
+        // تحديث قائمة المحادثات
+        loadChats();
+    }
+});
+
+// تأكيد الإرسال
+socket.on('message-sent', (msg) => {
+    console.log('✅ تأكيد إرسال:', msg.id);
+    
+    // البحث عن الرسالة المؤقتة
+    const index = chatMessages.findIndex(m => m.id === msg.id || (m.temp && m.content === msg.content));
+    
+    if (index !== -1) {
+        // تحديث الحالة
+        chatMessages[index] = {...msg, status: 'sent'};
+        
+        // تحديث العرض بدون إعادة رسم كاملة
+        const messageEl = document.querySelector(`[data-message-id="${msg.id}"]`);
+        if (messageEl) {
+            const statusEl = messageEl.querySelector('.message-status');
+            if (statusEl) {
+                statusEl.innerHTML = '<i class="fas fa-check" style="font-size: 10px;"></i>';
+            }
+        } else {
+            renderMessages(); // احتياطي
+        }
+    }
+});
+
+// ==================== 4. تحسين دالة عرض الرسائل ====================
+
+const originalRenderMessages = renderMessages;
+renderMessages = function() {
+    const area = document.getElementById('messagesArea');
+    if (!area) return;
+    
+    // استخدام DocumentFragment للسرعة
+    const fragment = document.createDocumentFragment();
+    
+    chatMessages.forEach(msg => {
+        const div = document.createElement('div');
+        div.className = `message ${msg.from === currentUser.id ? 'sent' : 'received'}`;
+        div.setAttribute('data-message-id', msg.id);
+        div.setAttribute('data-timestamp', msg.timestamp);
+        
+        if (msg.type === 'text') {
+            div.innerHTML = `
+                <div class="message-text">${escapeHtml(msg.content)}</div>
+                <div class="message-footer" style="display: flex; justify-content: flex-end; align-items: center; gap: 4px; margin-top: 2px;">
+                    <span class="message-time">${formatMessageTime(msg.timestamp)}</span>
+                    ${msg.from === currentUser.id ? `<span class="message-status">${msg.seen ? '<i class="fas fa-check-double" style="color: var(--success);"></i>' : (msg.status === 'sending' ? '<i class="fas fa-clock" style="color: var(--text-secondary);"></i>' : '<i class="fas fa-check"></i>')}</span>` : ''}
+                </div>
+            `;
+        } else if (msg.type === 'image') {
+            div.innerHTML = `
+                <img src="${msg.content}" class="message-image" onclick="viewMedia('${msg.content}')">
+                <div class="message-footer" style="display: flex; justify-content: flex-end; align-items: center; gap: 4px; margin-top: 2px;">
+                    <span class="message-time">${formatMessageTime(msg.timestamp)}</span>
+                    ${msg.from === currentUser.id ? `<span class="message-status">${msg.seen ? '<i class="fas fa-check-double" style="color: var(--success);"></i>' : '<i class="fas fa-check"></i>'}</span>` : ''}
+                </div>
+            `;
+        } else if (msg.type === 'video') {
+            div.innerHTML = `
+                <video src="${msg.content}" class="message-video" onclick="this.paused ? this.play() : this.pause()"></video>
+                <div class="message-footer" style="display: flex; justify-content: flex-end; align-items: center; gap: 4px; margin-top: 2px;">
+                    <span class="message-time">${formatMessageTime(msg.timestamp)}</span>
+                    ${msg.from === currentUser.id ? `<span class="message-status">${msg.seen ? '<i class="fas fa-check-double" style="color: var(--success);"></i>' : '<i class="fas fa-check"></i>'}</span>` : ''}
+                </div>
+            `;
+        } else if (msg.type === 'audio') {
+            div.innerHTML = `
+                <div class="audio-message" onclick="playAudioMessage(this)" data-src="${msg.content}" data-duration="${msg.duration || '0:03'}">
+                    <i class="fas fa-play"></i>
+                    <div class="audio-wave">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                    <span class="audio-duration">${msg.duration || '0:03'}</span>
+                </div>
+                <div class="message-footer" style="display: flex; justify-content: flex-end; align-items: center; gap: 4px; margin-top: 2px;">
+                    <span class="message-time">${formatMessageTime(msg.timestamp)}</span>
+                    ${msg.from === currentUser.id ? `<span class="message-status">${msg.seen ? '<i class="fas fa-check-double" style="color: var(--success);"></i>' : '<i class="fas fa-check"></i>'}</span>` : ''}
+                </div>
+            `;
+        }
+        
+        fragment.appendChild(div);
+    });
+    
+    // استبدال المحتوى دفعة واحدة
+    area.innerHTML = '';
+    area.appendChild(fragment);
+    
+    // التمرير لآخر رسالة
+    area.scrollTop = area.scrollHeight;
+};
+
+// ==================== 5. تحسين دالة إرسال الرسالة ====================
+
+// استبدال دالة الإرسال القديمة
+document.getElementById('sendBtn')?.removeEventListener('click', window.sendMessage);
+document.getElementById('sendBtn')?.addEventListener('click', function() {
+    const input = document.getElementById('chatInput');
+    const content = input.value.trim();
+    if (content && currentChat) {
+        sendMessageNow(content, 'text');
+    }
+});
+
+// تحسين إرسال Enter
+document.getElementById('chatInput')?.removeEventListener('keypress', window.handleEnterKey);
+document.getElementById('chatInput')?.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const content = this.value.trim();
+        if (content && currentChat) {
+            sendMessageNow(content, 'text');
+        }
+    }
+});
+
+// ==================== 6. تحسين تحميل الرسائل القديمة ====================
+
+const originalLoadMessages = loadMessages;
+loadMessages = async function() {
+    if (!currentChat) return;
+    
+    try {
+        const res = await fetch(`${SERVER_URL}/messages/${currentUser.id}/${currentChat.id}`);
+        const data = await res.json();
+        
+        if (data.success) {
+            // ترتيب الرسائل حسب الوقت
+            chatMessages = data.messages.sort((a, b) => a.timestamp - b.timestamp);
+            renderMessages();
+        }
+    } catch (err) {
+        console.error('❌ فشل تحميل الرسائل:', err);
+    }
+};
+
+// ==================== 7. دوال مساعدة محسنة ====================
+
+// تنسيق الوقت (منذ دقيقة، الساعة...)
+function formatMessageTime(timestamp) {
+    const now = Date.now();
+    const diff = now - timestamp;
+    
+    if (diff < 60000) return 'الآن';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)} د`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)} س`;
+    return new Date(timestamp).toLocaleDateString('ar');
+}
+
+// تشغيل صوت الإشعار (خفيف جداً)
+function playNotificationSound() {
+    const audio = new Audio();
+    audio.src = 'data:audio/wav;base64,UklGRlwAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVAAAAA8PHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHw=';
+    audio.volume = 0.3;
+    audio.play().catch(() => {});
+}
+
+// ==================== 8. تصحيح أخطاء الكتابة ====================
+
+// مؤقت الكتابة المحسن
+let typingTimerMs = null;
+const TYPING_TIMEOUT = 800; // 0.8 ثانية
+
+document.getElementById('chatInput')?.addEventListener('input', function() {
+    const hasText = this.value.trim().length > 0;
+    
+    // تبديل الأزرار
+    document.getElementById('recordBtn').style.display = hasText ? 'none' : 'flex';
+    document.getElementById('sendBtn').style.display = hasText ? 'flex' : 'none';
+    
+    if (currentChat) {
+        if (hasText && !typingTimerMs) {
+            // بدأ الكتابة
+            socket.emit('typing', { to: currentChat.id, isTyping: true });
+            typingTimerMs = setTimeout(() => {
+                typingTimerMs = null;
+            }, TYPING_TIMEOUT);
+        }
+        
+        // إعادة تعيين مؤقت التوقف
+        if (window.stopTypingTimerMs) {
+            clearTimeout(window.stopTypingTimerMs);
+        }
+        window.stopTypingTimerMs = setTimeout(() => {
+            if (currentChat) {
+                socket.emit('typing', { to: currentChat.id, isTyping: false });
+            }
+            window.stopTypingTimerMs = null;
+        }, TYPING_TIMEOUT);
+    }
+});
+
+// ==================== 9. إضافة أنماط للرسائل ====================
+
+const messageStyles = document.createElement('style');
+messageStyles.textContent = `
+    .message {
+        animation: messagePop 0.15s ease-out;
+        margin-bottom: 8px;
+    }
+    
+    @keyframes messagePop {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    
+    .message-time {
+        font-size: 10px;
+        color: var(--text-secondary);
+        opacity: 0.7;
+    }
+    
+    .message-status {
+        font-size: 10px;
+        color: var(--text-secondary);
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .message.sent .message-status i.fa-check-double {
+        color: var(--success);
+    }
+    
+    .message.sent .message-status i.fa-clock {
+        color: var(--text-secondary);
+    }
+    
+    .message-image, .message-video {
+        max-width: 250px;
+        border-radius: 16px;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    
+    .message-image:active, .message-video:active {
+        transform: scale(0.98);
+    }
+    
+    .audio-message {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255,255,255,0.1);
+        padding: 10px 16px;
+        border-radius: 40px;
+        cursor: pointer;
+        transition: background 0.2s;
+        max-width: 250px;
+    }
+    
+    .audio-message:active {
+        background: rgba(255,255,255,0.2);
+    }
+    
+    .audio-wave {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        height: 24px;
+    }
+    
+    .audio-wave span {
+        width: 4px;
+        height: 100%;
+        background: currentColor;
+        border-radius: 2px;
+        animation: audioWave 1s infinite;
+    }
+    
+    .audio-wave span:nth-child(2) { animation-delay: 0.1s; }
+    .audio-wave span:nth-child(3) { animation-delay: 0.2s; }
+    .audio-wave span:nth-child(4) { animation-delay: 0.3s; }
+    
+    @keyframes audioWave {
+        0%, 100% { transform: scaleY(0.3); }
+        50% { transform: scaleY(1); }
+    }
+    
+    .audio-duration {
+        font-size: 12px;
+        opacity: 0.8;
+        min-width: 35px;
+    }
+`;
+
+document.head.appendChild(messageStyles);
+
+// ==================== 10. تشغيل الصوت ====================
+
+window.playAudioMessage = function(element) {
+    const src = element.dataset.src;
+    const duration = element.dataset.duration;
+    const audio = new Audio(src);
+    const icon = element.querySelector('i');
+    const wave = element.querySelector('.audio-wave');
+    
+    if (audio.paused) {
+        audio.play();
+        icon.className = 'fas fa-pause';
+        
+        // محاكاة الموجات
+        let interval = setInterval(() => {
+            if (audio.paused) {
+                clearInterval(interval);
+                icon.className = 'fas fa-play';
+            }
+        }, 100);
+        
+        audio.onended = () => {
+            icon.className = 'fas fa-play';
+            clearInterval(interval);
+        };
+    } else {
+        audio.pause();
+        icon.className = 'fas fa-play';
+    }
+};
+
+console.log('⚡ نظام الرسائل الفورية نشط وجاهز');
+</script>
 </body>
 </html>
